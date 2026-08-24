@@ -1,0 +1,226 @@
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #f4f5f7;
+  color: #1a1a1a;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.app-header h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+
+.app-header p {
+  margin: 0 0 24px;
+  color: #5b5f66;
+}
+
+.type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.type-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #d7d9dd;
+  background: #fff;
+  color: #33363b;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.type-tab:hover {
+  border-color: #9aa0ff;
+}
+
+.type-tab.active {
+  background: #4c4fe0;
+  border-color: #4c4fe0;
+  color: #fff;
+}
+
+.type-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.panel h2 {
+  font-size: 16px;
+  margin: 0 0 14px;
+}
+
+.options-heading {
+  margin-top: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.field-label {
+  color: #444;
+  font-weight: 500;
+}
+
+.required {
+  color: #d64545;
+  margin-left: 3px;
+}
+
+.field input[type='text'],
+.field input[type='password'],
+.field textarea,
+.field select {
+  padding: 8px 10px;
+  border: 1px solid #d7d9dd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+}
+
+.field input[type='color'] {
+  width: 48px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #d7d9dd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: 2px solid #4c4fe0;
+  outline-offset: 1px;
+}
+
+.field-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.options-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.preview-panel {
+  position: sticky;
+  top: 20px;
+}
+
+.qr-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.qr-canvas-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  width: 100%;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.qr-canvas-wrap canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.qr-empty-hint {
+  color: #8a8f98;
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 10px;
+}
+
+.qr-error {
+  color: #d64545;
+  font-size: 13px;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.qr-actions button {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #4c4fe0;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.qr-actions button:hover:not(:disabled) {
+  background: #3d40c4;
+}
+
+.qr-actions button:disabled {
+  background: #c6c8d6;
+  cursor: not-allowed;
+}
