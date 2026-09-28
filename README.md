@@ -1,32 +1,53 @@
-# React + TypeScript + Vite
+# QR Code Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A client-side QR code generator built with React 19, TypeScript, and Vite. Create QR codes for
+URLs, Wi-Fi, contacts, events, and more — then style, export, scan, and batch-generate them,
+all in your browser (nothing is uploaded anywhere).
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Content types** — Text, URL, Wi-Fi, Email, SMS, Phone, WhatsApp, vCard contact, and Calendar event.
 
-## React Compiler
+**Styling**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 8 one-click theme presets (Classic Black, Ocean Gradient, Sunset Dot, Neon Night, Mint Leaf,
+  Minimal Gray, Berry Heart, Midnight Gold), plus save/restore your own named styles.
+- Solid, linear-gradient, or radial-gradient fills with an angle control.
+- Module shapes: square, rounded, dot, diamond, leaf, star, heart.
+- Independent finder-eye shapes (eye frame + pupil).
+- Backgrounds: solid color, fully transparent, or a custom image.
+- Center logo overlay with shape (square/rounded/circle), size, and optional white plate.
+- Adjustable quiet zone and error-correction level.
 
-## Expanding the Oxlint configuration
+**Export**
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- PNG at 1×–8× scale (high-DPI), SVG vector, print-ready PDF (physical mm sizing, sheet tiling,
+  margins, captions), and EPS vector (gradient sampled per module).
+- Copy image straight to the clipboard.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+**History & presets** — recent codes and saved styles persist in `localStorage` (browser-local only).
+
+**Scan** — decode QR codes with your webcam or by uploading an image (uses `jsqr`).
+
+**Batch** — paste rows or upload a CSV/JSON file and download a ZIP of PNG and/or SVG codes,
+styled with your current settings (uses `jszip`).
+
+## Getting started
+
+```bash
+npm install
+npm run dev      # start dev server
+npm run build    # type-check + production build
+npm run lint     # oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Architecture notes
+
+- `src/qr/` — framework-free core: `options.ts` (types + presets), `geometry.ts` (shared shape
+  polygons/path data), `render.ts` (canvas + SVG rendering from the raw module matrix),
+  `exporters.ts` (PNG/SVG/PDF/EPS/clipboard), `history.ts` (localStorage),
+  `batch.ts` (CSV/JSON parsing + ZIP), `decode.ts` (image/webcam decoding), `images.ts`.
+- The renderer uses `QRCode.create()` to obtain the raw module `BitMatrix`, so modules, eyes,
+  gradients, and logos are drawn with shared geometry — the canvas preview and SVG/PDF/EPS
+  exports always match.
+- All processing happens locally; no network calls after the app loads.
