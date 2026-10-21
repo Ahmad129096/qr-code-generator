@@ -11,6 +11,7 @@ import {
   exportSvg,
 } from '../qr/exporters'
 import type { HistoryEntry } from '../qr/history'
+import ScanAuditPanel from './ScanAuditPanel'
 
 interface Props {
   value: string
@@ -18,11 +19,19 @@ interface Props {
   emptyHint: string
   /** Called (debounced) when a stable value+style has rendered, for history. */
   onHistoryEntry?: (entry: HistoryEntry) => void
+  /** Called when the user accepts an error-correction suggestion. */
+  onOptionsChange?: (options: QrOptions) => void
 }
 
 const PNG_SCALES = [1, 2, 4, 8]
 
-export default function QrPreview({ value, options, emptyHint, onHistoryEntry }: Props) {
+export default function QrPreview({
+  value,
+  options,
+  emptyHint,
+  onHistoryEntry,
+  onOptionsChange,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [assets, setAssets] = useState<RenderAssets>({})
   const [busy, setBusy] = useState<string | null>(null)
@@ -133,6 +142,17 @@ export default function QrPreview({ value, options, emptyHint, onHistoryEntry }:
       )}
       {error && <p className="qr-error">{error}</p>}
       {note && <p className="qr-note">{note}</p>}
+
+      <ScanAuditPanel
+        model={model}
+        value={value}
+        options={options}
+        onApplyErrorCorrection={
+          onOptionsChange
+            ? (level) => onOptionsChange({ ...options, errorCorrectionLevel: level })
+            : undefined
+        }
+      />
 
       <div className="export-group">
         <div className="export-row">

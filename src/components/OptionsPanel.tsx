@@ -357,10 +357,10 @@ export default function OptionsPanel({ options, onChange }: Props) {
             </>
           )}
         </div>
-        {options.logo && options.errorCorrectionLevel !== 'H' && (
+        {options.logo && (
           <p className="opt-hint">
-            Tip: switch error correction to <strong>High (H)</strong> so the logo covers less
-            recoverable data.
+            Scan check below the preview verifies your logo size against the current error
+            correction level and suggests a safer one.
           </p>
         )}
       </section>

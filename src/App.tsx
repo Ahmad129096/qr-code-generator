@@ -145,6 +145,7 @@ export default function App() {
                 options={options}
                 emptyHint={activeType.emptyHint}
                 onHistoryEntry={handleHistoryEntry}
+                onOptionsChange={setOptions}
               />
             </section>
           </main>

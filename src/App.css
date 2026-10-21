@@ -19,6 +19,7 @@
   --accent-contrast: #ffffff;
   --danger: #d64545;
   --ok: #268a4b;
+  --warn: #b26a00;
   --chip: #f0f1f4;
   --shadow: 0 1px 3px rgba(17, 20, 28, 0.08);
   --shadow-lift: 0 4px 14px rgba(17, 20, 28, 0.1);
@@ -45,6 +46,7 @@
     --accent-contrast: #ffffff;
     --danger: #ef6b6b;
     --ok: #52c07a;
+    --warn: #e0a83a;
     --chip: #242932;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     --shadow-lift: 0 6px 18px rgba(0, 0, 0, 0.45);
@@ -1106,4 +1108,187 @@ button {
   background: linear-gradient(90deg, var(--accent), #22d3ee);
   border-radius: 999px;
   transition: width 0.2s;
+}
+
+/* ============================================================
+   Scan check (scannability audit + in-browser test scan)
+   ============================================================ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.scan-audit {
+  width: 100%;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  padding: 12px 14px 14px;
+}
+
+.scan-audit.audit-warn {
+  border-color: color-mix(in srgb, var(--warn, #d99100) 45%, var(--border-soft));
+}
+
+.scan-audit.audit-error {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--border-soft));
+}
+
+.audit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.audit-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.audit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.audit-badge-ok {
+  background: var(--ok);
+}
+
+.audit-badge-warn {
+  background: var(--warn, #d99100);
+}
+
+.audit-badge-error {
+  background: var(--danger);
+}
+
+.audit-test-btn {
+  font-size: 12.5px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  cursor: pointer;
+}
+
+.audit-test-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.audit-summary {
+  margin: 9px 0 0;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.audit-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.audit-item {
+  display: flex;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.audit-icon {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  border-radius: 50%;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  color: #fff;
+}
+
+.audit-item-ok .audit-icon {
+  background: var(--ok);
+}
+
+.audit-item-warn .audit-icon {
+  background: var(--warn, #d99100);
+}
+
+.audit-item-error .audit-icon {
+  background: var(--danger);
+}
+
+.audit-item-ok .audit-text {
+  color: var(--text-mute);
+}
+
+.audit-suggestion {
+  display: block;
+  color: var(--text-soft);
+}
+
+.audit-fix-btn {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.audit-fix-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.audit-scan-result {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.audit-scan-result.ok {
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  color: var(--text);
+}
+
+.audit-scan-result.bad {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--text);
+}
+
+.audit-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text-mute);
 }
