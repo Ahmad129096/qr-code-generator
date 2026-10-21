@@ -208,6 +208,102 @@ export const QR_TYPES: QrTypeDef[] = [
     },
   },
   {
+    id: 'geo',
+    label: 'Location',
+    icon: '📍',
+    emptyHint: 'Enter coordinates',
+    fields: [
+      { key: 'lat', label: 'Latitude', type: 'text', placeholder: '40.7128', required: true },
+      { key: 'lon', label: 'Longitude', type: 'text', placeholder: '-74.0060', required: true },
+      { key: 'query', label: 'Label (optional)', type: 'text', placeholder: 'Times Square' },
+    ],
+    build: (d) => {
+      const lat = get(d, 'lat').replace(/[^\d.-]/g, '')
+      const lon = get(d, 'lon').replace(/[^\d.-]/g, '')
+      if (!lat || !lon) return ''
+      const q = get(d, 'query')
+      return q ? `geo:${lat},${lon}?q=${encodeURIComponent(q)}` : `geo:${lat},${lon}`
+    },
+  },
+  {
+    id: 'appstore',
+    label: 'App Store',
+    icon: '📱',
+    emptyHint: 'Enter app details',
+    fields: [
+      {
+        key: 'platform',
+        label: 'Platform',
+        type: 'select',
+        options: [
+          { value: 'auto', label: 'Auto-detect (iOS/Android)' },
+          { value: 'ios', label: 'iOS App Store' },
+          { value: 'android', label: 'Google Play' },
+        ],
+        defaultValue: 'auto',
+      },
+      { key: 'iosId', label: 'iOS App ID (numeric)', type: 'text', placeholder: '123456789' },
+      { key: 'androidId', label: 'Android package name', type: 'text', placeholder: 'com.example.app' },
+    ],
+    build: (d) => {
+      const platform = get(d, 'platform') || 'auto'
+      const iosId = get(d, 'iosId').replace(/\D/g, '')
+      const androidId = get(d, 'androidId').trim()
+      if (platform === 'ios' && iosId) return `https://apps.apple.com/app/id${iosId}`
+      if (platform === 'android' && androidId) return `https://play.google.com/store/apps/details?id=${encodeURIComponent(androidId)}`
+      if (platform === 'auto') {
+        if (iosId && androidId) {
+          const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><script>var ua=navigator.userAgent||'';/iPhone|iPad|iPod/i.test(ua)?location.replace('https://apps.apple.com/app/id${iosId}'):location.replace('https://play.google.com/store/apps/details?id=${encodeURIComponent(androidId).replace(/%/g,'\\%')}')</script></body></html>`
+          return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
+        }
+        if (iosId) return `https://apps.apple.com/app/id${iosId}`
+        if (androidId) return `https://play.google.com/store/apps/details?id=${encodeURIComponent(androidId)}`
+      }
+      return ''
+    },
+  },
+  {
+    id: 'social',
+    label: 'Social',
+    icon: '👥',
+    emptyHint: 'Enter your profile',
+    fields: [
+      {
+        key: 'platform',
+        label: 'Platform',
+        type: 'select',
+        options: [
+          { value: 'instagram', label: 'Instagram' },
+          { value: 'x', label: 'X (Twitter)' },
+          { value: 'linkedin', label: 'LinkedIn' },
+          { value: 'github', label: 'GitHub' },
+          { value: 'facebook', label: 'Facebook' },
+          { value: 'youtube', label: 'YouTube' },
+          { value: 'tiktok', label: 'TikTok' },
+          { value: 'threads', label: 'Threads' },
+        ],
+        defaultValue: 'instagram',
+      },
+      { key: 'username', label: 'Username', type: 'text', placeholder: 'username', required: true },
+    ],
+    build: (d) => {
+      const p = get(d, 'platform')
+      const u = get(d, 'username').replace(/^@+/, '').trim()
+      if (!u) return ''
+      const map: Record<string, string> = {
+        instagram: `https://instagram.com/${encodeURIComponent(u)}`,
+        x: `https://x.com/${encodeURIComponent(u)}`,
+        linkedin: `https://linkedin.com/in/${encodeURIComponent(u)}`,
+        github: `https://github.com/${encodeURIComponent(u)}`,
+        facebook: `https://facebook.com/${encodeURIComponent(u)}`,
+        youtube: `https://youtube.com/@${encodeURIComponent(u)}`,
+        tiktok: `https://tiktok.com/@${encodeURIComponent(u)}`,
+        threads: `https://threads.net/@${encodeURIComponent(u)}`,
+      }
+      return map[p] ?? ''
+    },
+  },
+  {
     id: 'event',
     label: 'Event',
     icon: '📅',
