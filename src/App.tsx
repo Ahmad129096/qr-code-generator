@@ -1,4 +1,4 @@
-import { useCallback, lazy, Suspense, useMemo, useState } from 'react'
+import { useCallback, lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { QR_TYPES, FIRST_TYPE, defaultFormData } from './qrTypes'
 import DynamicForm from './components/DynamicForm'
@@ -11,6 +11,7 @@ import { defaultOptions, type QrOptions } from './qr/options'
 import { loadHistory, pushHistory, type HistoryEntry } from './qr/history'
 import { buildShareUrl, decodeShareState } from './qr/share'
 import { HOME_LANDING, landingForSlug, pathForType, type LandingPage } from './landing'
+import { applyNotFoundSeo, applySeo } from './seo'
 import './App.css'
 
 // The scanner (jsqr) and batch (jszip) toolchains are only needed on their
@@ -180,6 +181,13 @@ function GeneratorPage({
     }
     return HOME_LANDING
   }, [slug])
+
+  // Keep the document head in sync with the page (the static build ships the
+  // right tags for a direct visit; this covers client-side navigation).
+  useEffect(() => {
+    if (landing) applySeo(landing)
+    else applyNotFoundSeo()
+  }, [landing])
 
   const activeType = useMemo(
     () => QR_TYPES.find((t) => t.id === landing?.typeId) ?? FIRST_TYPE,

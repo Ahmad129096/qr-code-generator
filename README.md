@@ -39,7 +39,9 @@ styled with your current settings (uses `jszip`).
 
 **Pages** — every content type has its own landing page and URL, for example
 `/wifi-qr-code-generator`, `/vcard-qr-code-generator` or `/event-qr-code-generator`. The URLs
-are real links, so they can be shared, bookmarked and indexed.
+are real links, so they can be shared, bookmarked and indexed. Each page is also built as a
+static HTML file with its own title, description and structured data (see
+[SEO and static pages](#seo-and-static-pages)).
 
 ## Getting started
 
@@ -63,6 +65,10 @@ npm run build    # strict typecheck + production build
 
 - `src/landing.ts` — the landing pages: one per content type, with its slug, SEO title,
   description and copy. The router and the build step both read from this table.
+- `src/seo.ts` — keeps `document.title`, the description and the Open Graph tags in sync with
+  the page during client-side navigation (the static build ships the tags for direct visits).
+- `scripts/` — build-time only: the static HTML/sitemap/robots generator and the PNG writer for
+  the icons and the Open Graph image.
 - `src/qr/` — framework-free core: `options.ts` (types + presets), `geometry.ts` (shared shape
   polygons/path data), `render.ts` (canvas + SVG rendering from the raw module matrix),
   `exporters.ts` (PNG/SVG/PDF/EPS/clipboard), `history.ts` (localStorage), `share.ts` (URL-fragment
@@ -73,7 +79,8 @@ npm run build    # strict typecheck + production build
   exports always match.
 - All processing happens locally; no network calls after the app loads.
 - TypeScript runs in strict mode; the core in `src/qr/` is covered by vitest suites in
-  `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history, share links).
+  `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history, share links), and
+  the build scripts in `scripts/` have their own suites in `scripts/__tests__/`.
 
 ## Deployment
 
@@ -85,6 +92,30 @@ unknown paths to `index.html` so the router can take over:
 - **Nginx** — `try_files $uri $uri/ /index.html;`
 
 `npm run build` writes a plain static bundle to `dist/`, so any static host works.
+
+### SEO and static pages
+
+Every landing page also ships as a static HTML file (`dist/<slug>/index.html`) with its own title,
+meta description, canonical URL, Open Graph / Twitter tags and JSON-LD (`WebApplication`,
+free). Next to that the build writes `dist/sitemap.xml`, `dist/robots.txt`, an Open Graph image
+(`dist/og-image.png`) and the PWA icons (`dist/icons/`).
+
+The public URL of the site is **not** hard-coded — set `VITE_SITE_URL` in the build environment
+(for example in the Vercel project settings):
+
+```bash
+VITE_SITE_URL=https://qr.example.com npm run build
+```
+
+Without it the build still succeeds, but it skips the sitemap, robots.txt and the per-page static
+HTML (and prints a warning) rather than pointing canonical links at a wrong domain.
+
+The copy lives in `src/landing.ts`; the generator is in `scripts/static-pages.ts` and the small
+dependency-free PNG writer (icons + Open Graph image) is in `scripts/images.ts`.
+
+> **Note:** unknown URLs are rewritten to `index.html` and answered with `200` while the app shows
+> its own “page not found” view. On a host that can return a real `404`, prefer serving a
+> `404.html` for unmatched paths.
 
 ## Contributing & license
 

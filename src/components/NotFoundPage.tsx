@@ -1,9 +1,15 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { QR_TYPES } from '../qrTypes'
 import { pathForType } from '../landing'
+import { applyNotFoundSeo } from '../seo'
 
 /** Shown for URLs that do not match a landing page. */
 export default function NotFoundPage() {
+  useEffect(() => {
+    applyNotFoundSeo()
+  }, [])
+
   return (
     <main className="app-main single">
       <section className="panel not-found">
