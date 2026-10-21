@@ -121,9 +121,22 @@ describe('event (ICS) encoder', () => {
 
   // TODO(Phase 2): toIcsDate appends "00" when there is no time part, so
   // date-only values produce invalid ICS ("2026010500"). Fix + unskip.
-  it.skip('supports date-only (all-day) events', () => {
+  it('supports date-only (all-day) events', () => {
     const out = build('event', { title: 'Holiday', start: '2026-01-05' })
     expect(out).toContain('DTSTART:20260105')
+    expect(out).not.toContain('DTSTART:2026010500')
+  })
+
+  it('escapes special characters in ICS fields', () => {
+    const out = build('event', {
+      title: 'Q&A; Meeting, "Big"',
+      start: '2026-01-05T09:00',
+      location: 'Room\\A\nB',
+      description: 'Line1\nLine2',
+    })
+    expect(out).toContain('SUMMARY:Q&A\\; Meeting\\, "Big"')
+    expect(out).toContain('LOCATION:Room\\\\A\\nB')
+    expect(out).toContain('DESCRIPTION:Line1\\nLine2')
   })
 })
 

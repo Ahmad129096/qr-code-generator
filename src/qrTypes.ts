@@ -32,6 +32,15 @@ function escapeVCard(value: string): string {
   return value.replace(/([\\;,])/g, '\\$1').replace(/\n/g, '\\n')
 }
 
+/** Escape text for ICS (RFC 5545): backslash, comma, semicolon, newline. */
+function escapeIcsText(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/\n/g, '\\n')
+    .replace(/,/g, '\\,')
+    .replace(/;/g, '\\;')
+}
+
 function get(data: Record<string, string | boolean>, key: string): string {
   const v = data[key]
   return typeof v === 'string' ? v.trim() : ''
@@ -214,18 +223,24 @@ export const QR_TYPES: QrTypeDef[] = [
       const title = get(d, 'title')
       const start = get(d, 'start')
       if (!title || !start) return ''
-      const toIcsDate = (v: string) => v.replace(/[-:]/g, '').slice(0, 15) + (v.includes('T') ? '00' : '')
+      const toIcsDate = (v: string) => {
+        const clean = v.replace(/[-:]/g, '')
+        // Date-only (YYYYMMDD) — all-day event.
+        if (/^\d{8}$/.test(clean)) return clean
+        // Date + time (YYYYMMDDTHHmm or longer).
+        return clean.slice(0, 15) + (clean.includes('T') ? '00' : '')
+      }
       const end = get(d, 'end') || start
       const lines = [
         'BEGIN:VEVENT',
-        `SUMMARY:${title}`,
+        `SUMMARY:${escapeIcsText(title)}`,
         `DTSTART:${toIcsDate(start)}`,
         `DTEND:${toIcsDate(end)}`,
       ]
       const location = get(d, 'location')
       const description = get(d, 'description')
-      if (location) lines.push(`LOCATION:${location}`)
-      if (description) lines.push(`DESCRIPTION:${description}`)
+      if (location) lines.push(`LOCATION:${escapeIcsText(location)}`)
+      if (description) lines.push(`DESCRIPTION:${escapeIcsText(description)}`)
       lines.push('END:VEVENT')
       return lines.join('\n')
     },
