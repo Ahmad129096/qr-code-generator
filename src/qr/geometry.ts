@@ -35,8 +35,9 @@ export function roundedRectPoly(
   seg = 8,
 ): Poly {
   const maxR = Math.min(w, h) / 2
-  const clamped = radii.map((v) => Math.min(Math.max(v, 0), maxR))
-  const [tl, tr, br, bl] = clamped
+  const clamp = (v: number): number => Math.min(Math.max(v, 0), maxR)
+  const [r0, r1, r2, r3] = radii
+  const [tl, tr, br, bl] = [clamp(r0), clamp(r1), clamp(r2), clamp(r3)]
   const pts: number[] = []
   pts.push(...arcPoints(x + tl, y + tl, tl, Math.PI, Math.PI * 1.5, seg))
   pts.push(...arcPoints(x + w - tr, y + tr, tr, Math.PI * 1.5, TAU, seg))
@@ -89,8 +90,10 @@ function heartPoly(x: number, y: number, w: number, h: number, samples = 48): Po
   const sx = w / (maxX - minX || 1)
   const sy = h / (maxY - minY || 1)
   const pts: number[] = []
-  for (let i = 0; i < raw.length; i += 2) {
-    pts.push(x + (raw[i] - minX) * sx, y + (maxY - raw[i + 1]) * sy)
+  for (let i = 0; i + 1 < raw.length; i += 2) {
+    const hx = raw[i] ?? 0
+    const hy = raw[i + 1] ?? 0
+    pts.push(x + (hx - minX) * sx, y + (maxY - hy) * sy)
   }
   return pts
 }
@@ -129,9 +132,9 @@ function num(v: number): string {
 /** SVG path data for a polygon (M/L/Z only). */
 export function pathD(poly: Poly): string {
   if (poly.length < 4) return ''
-  let d = `M${num(poly[0])} ${num(poly[1])}`
-  for (let i = 2; i < poly.length; i += 2) {
-    d += `L${num(poly[i])} ${num(poly[i + 1])}`
+  let d = `M${num(poly[0] ?? 0)} ${num(poly[1] ?? 0)}`
+  for (let i = 2; i + 1 < poly.length; i += 2) {
+    d += `L${num(poly[i] ?? 0)} ${num(poly[i + 1] ?? 0)}`
   }
   return d + 'Z'
 }
@@ -139,9 +142,11 @@ export function pathD(poly: Poly): string {
 /** PostScript path operators for a polygon (absolute coords, y already flipped by caller). */
 export function epsPath(poly: Poly, mapX: (x: number) => number, mapY: (y: number) => number): string {
   if (poly.length < 4) return ''
-  const parts: string[] = [`${mapX(poly[0]).toFixed(2)} ${mapY(poly[1]).toFixed(2)} moveto`]
-  for (let i = 2; i < poly.length; i += 2) {
-    parts.push(`${mapX(poly[i]).toFixed(2)} ${mapY(poly[i + 1]).toFixed(2)} lineto`)
+  const parts: string[] = [
+    `${mapX(poly[0] ?? 0).toFixed(2)} ${mapY(poly[1] ?? 0).toFixed(2)} moveto`,
+  ]
+  for (let i = 2; i + 1 < poly.length; i += 2) {
+    parts.push(`${mapX(poly[i] ?? 0).toFixed(2)} ${mapY(poly[i + 1] ?? 0).toFixed(2)} lineto`)
   }
   parts.push('closepath')
   return parts.join('\n')
@@ -152,11 +157,13 @@ export function polyBBoxCenter(poly: Poly): [number, number] {
   let minY = Infinity
   let maxX = -Infinity
   let maxY = -Infinity
-  for (let i = 0; i < poly.length; i += 2) {
-    minX = Math.min(minX, poly[i])
-    maxX = Math.max(maxX, poly[i])
-    minY = Math.min(minY, poly[i + 1])
-    maxY = Math.max(maxY, poly[i + 1])
+  for (let i = 0; i + 1 < poly.length; i += 2) {
+    const px = poly[i] ?? 0
+    const py = poly[i + 1] ?? 0
+    minX = Math.min(minX, px)
+    maxX = Math.max(maxX, px)
+    minY = Math.min(minY, py)
+    maxY = Math.max(maxY, py)
   }
   return [(minX + maxX) / 2, (minY + maxY) / 2]
 }

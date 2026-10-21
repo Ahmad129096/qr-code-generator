@@ -173,7 +173,8 @@ export function fillSpec(options: QrOptions, S: number): FillSpec {
 function hexToRgb(hex: string): [number, number, number] {
   let h = hex.replace('#', '').trim()
   if (h.length === 3) {
-    h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]
+    const [r = '0', g = '0', b = '0'] = h.split('')
+    h = r + r + g + g + b + b
   }
   const n = parseInt(h.slice(0, 6) || '0', 16)
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]

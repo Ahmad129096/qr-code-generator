@@ -34,12 +34,21 @@ styled with your current settings (uses `jszip`).
 
 ## Getting started
 
+Requirements: **Node.js ≥ 20.19** (Vite 8).
+
 ```bash
 npm install
 npm run dev      # start dev server
-npm run build    # type-check + production build
+npm test         # vitest — unit tests for the core (src/qr)
 npm run lint     # oxlint
+npm run build    # strict typecheck + production build
 ```
+
+> **Windows + npm note:** npm can skip the optional native bindings that
+> `oxlint`/`rolldown` need. If `npm run lint`/`npm run build` fail with
+> *"Cannot find native binding"*, run
+> `npm install --no-save "@oxlint/binding-win32-x64-msvc" "@rolldown/binding-win32-x64-msvc"`
+> (no repo files change).
 
 ## Architecture notes
 
@@ -51,3 +60,12 @@ npm run lint     # oxlint
   gradients, and logos are drawn with shared geometry — the canvas preview and SVG/PDF/EPS
   exports always match.
 - All processing happens locally; no network calls after the app loads.
+- TypeScript runs in strict mode; the core in `src/qr/` is covered by vitest suites in
+  `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history).
+
+## Contributing & license
+
+Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, standards,
+and the PR process. CI (GitHub Actions) runs lint, tests, and the build on every PR.
+
+Released under the [MIT License](./LICENSE).

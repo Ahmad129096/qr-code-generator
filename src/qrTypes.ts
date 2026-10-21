@@ -232,6 +232,9 @@ export const QR_TYPES: QrTypeDef[] = [
   },
 ]
 
+/** First entry of QR_TYPES — the table is non-empty by construction. */
+export const FIRST_TYPE: QrTypeDef = QR_TYPES[0]!
+
 export function defaultFormData(def: QrTypeDef): Record<string, string | boolean> {
   const data: Record<string, string | boolean> = {}
   for (const field of def.fields) {

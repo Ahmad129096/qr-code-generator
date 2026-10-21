@@ -68,7 +68,8 @@ export function parseCsv(text: string): BatchItem[] {
     .filter((l) => l.length > 0)
   if (lines.length === 0) throw new BatchParseError('The CSV file is empty.')
 
-  const first = splitCsvLine(lines[0]).map((h) => h.toLowerCase())
+  const [firstLine] = lines
+  const first = splitCsvLine(firstLine ?? '').map((h) => h.toLowerCase())
   const headerIdx = first.findIndex((h) => VALUE_KEYS.includes(h))
   const hasHeader = headerIdx >= 0 && lines.length > 1
 
@@ -154,8 +155,7 @@ export async function generateZip(
   const used = new Set<string>()
   const failures: string[] = []
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]
+  for (const [i, item] of items.entries()) {
     let model: QrModel
     try {
       model = createModel(item.value, options.errorCorrectionLevel)

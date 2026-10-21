@@ -1,5 +1,5 @@
 import { useCallback, lazy, Suspense, useMemo, useState } from 'react'
-import { QR_TYPES, defaultFormData } from './qrTypes'
+import { QR_TYPES, FIRST_TYPE, defaultFormData } from './qrTypes'
 import DynamicForm from './components/DynamicForm'
 import QrPreview from './components/QrPreview'
 import OptionsPanel from './components/OptionsPanel'
@@ -17,7 +17,7 @@ type View = 'create' | 'scan' | 'batch'
 
 export default function App() {
   const [view, setView] = useState<View>('create')
-  const [activeTypeId, setActiveTypeId] = useState(QR_TYPES[0].id)
+  const [activeTypeId, setActiveTypeId] = useState(FIRST_TYPE.id)
   const [formDataByType, setFormDataByType] = useState<
     Record<string, Record<string, string | boolean>>
   >(() => {
@@ -29,10 +29,14 @@ export default function App() {
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory())
 
   const activeType = useMemo(
-    () => QR_TYPES.find((t) => t.id === activeTypeId)!,
+    () => QR_TYPES.find((t) => t.id === activeTypeId) ?? FIRST_TYPE,
     [activeTypeId],
   )
-  const activeData = formDataByType[activeTypeId]
+  // Fall back to defaults if the stored map ever lacks an entry.
+  const activeData = useMemo(
+    () => formDataByType[activeType.id] ?? defaultFormData(activeType),
+    [formDataByType, activeType],
+  )
   const qrValue = useMemo(
     () => activeType.build(activeData),
     [activeType, activeData],
