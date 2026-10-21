@@ -1,4 +1,5 @@
 import type { QrOptions } from './options'
+import { FRAME_HEIGHT_RATIO } from './options'
 import {
   buildPaths,
   colorAt,
@@ -10,6 +11,7 @@ import {
 } from './render'
 import { loadAssets, type RenderAssets } from './images'
 import { epsPath, polyBBoxCenter } from './geometry'
+import { pdfPageLayout } from './print'
 
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)
@@ -126,6 +128,10 @@ export async function exportPdf(
   const { jsPDF } = await import('jspdf')
   const sizeMm = opts.printSizeMm ?? 40
   const gap = opts.printMarginMm ?? 8
+  const preset = opts.printPreset ?? 'sheet'
+  const pageLayout = pdfPageLayout(preset)
+  const frameMm = opts.frameText.trim() ? sizeMm * FRAME_HEIGHT_RATIO : 0
+  const imageHeightMm = sizeMm + frameMm
   const assets = await assetsFor(opts)
 
   const px = Math.min(4096, Math.round(sizeMm * 12))
@@ -133,34 +139,61 @@ export async function exportPdf(
   renderToCanvas(canvas, model, opts, px, assets)
   const png = canvas.toDataURL('image/png')
 
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const doc =
+    preset === 'business-card'
+      ? new jsPDF({
+          unit: 'mm',
+          format: [pageLayout.widthMm, pageLayout.heightMm],
+          orientation: pageLayout.orientation,
+        })
+      : new jsPDF({
+          unit: 'mm',
+          format: 'a4',
+          orientation: pageLayout.orientation,
+        })
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
   const captionH = caption ? 6 : 0
-  const cellW = sizeMm + gap
-  const cellH = sizeMm + captionH + gap
+  const drawCode = (x: number, y: number, width = sizeMm): void => {
+    const height = width + (opts.frameText.trim() ? width * FRAME_HEIGHT_RATIO : 0)
+    doc.addImage(png, 'PNG', x, y, width, height, undefined, 'FAST')
+    if (caption) {
+      doc.setFontSize(8)
+      doc.text(caption, x + width / 2, y + height + 4, {
+        align: 'center',
+        maxWidth: width,
+      })
+    }
+  }
 
-  const cols = Math.max(1, Math.floor((pageW - gap) / cellW))
-  const rows = Math.max(1, Math.floor((pageH - gap) / cellH))
-  let printed = 0
-
-  const sheet = () => {
+  if (pageLayout.mode === 'sheet') {
+    const cellW = sizeMm + gap
+    const cellH = imageHeightMm + captionH + gap
+    const cols = Math.max(1, Math.floor((pageW - gap) / cellW))
+    const rows = Math.max(1, Math.floor((pageH - gap) / cellH))
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const x = gap / 2 + c * cellW + gap / 2
         const y = gap / 2 + r * cellH + gap / 2
-        doc.addImage(png, 'PNG', x, y, sizeMm, sizeMm, undefined, 'FAST')
-        if (caption) {
-          doc.setFontSize(8)
-          doc.text(caption, x + sizeMm / 2, y + sizeMm + 4, { align: 'center' })
-        }
-        printed++
+        drawCode(x, y)
       }
     }
+  } else if (pageLayout.mode === 'paired') {
+    const panelWidth = pageW / 2
+    const x = (panel: number) => panel * panelWidth + (panelWidth - sizeMm) / 2
+    const y = (pageH - imageHeightMm - captionH) / 2
+    drawCode(x(0), y)
+    drawCode(x(1), y)
+    doc.setDrawColor(170)
+    doc.setLineDashPattern([2, 2], 0)
+    doc.line(panelWidth, 0, panelWidth, pageH)
+    doc.setLineDashPattern([], 0)
+  } else {
+    const x = (pageW - sizeMm) / 2
+    const y = (pageH - imageHeightMm - captionH) / 2
+    drawCode(x, y)
   }
 
-  sheet()
-  void printed
   doc.save('qr-code.pdf')
 }
 

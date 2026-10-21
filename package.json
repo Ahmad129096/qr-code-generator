@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:browser-package": "vite build --config packages/qr-browser/vite.config.ts && tsc -p packages/qr-browser/tsconfig.types.json",
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",

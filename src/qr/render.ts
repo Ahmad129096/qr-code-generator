@@ -2,7 +2,12 @@ import QRCode from 'qrcode'
 import type { BitMatrix } from 'qrcode'
 import { pathD, polyBBoxCenter, shapePoly, type Poly } from './geometry'
 import { loadImage, type RenderAssets } from './images'
-import type { QrOptions } from './options'
+import {
+  FRAME_HEIGHT_RATIO,
+  sanitizeImageDataUrl,
+  sanitizeOptions,
+  type QrOptions,
+} from './options'
 
 export type { RenderAssets }
 
@@ -243,13 +248,15 @@ export function renderToCanvas(
   assets: RenderAssets = {},
 ): void {
   const S = pixelSize
-  if (canvas.width !== S || canvas.height !== S) {
+  const frameH = options.frameText.trim() ? Math.round(S * FRAME_HEIGHT_RATIO) : 0
+  const canvasH = S + frameH
+  if (canvas.width !== S || canvas.height !== canvasH) {
     canvas.width = S
-    canvas.height = S
+    canvas.height = canvasH
   }
   const ctx = canvas.getContext('2d')
   if (!ctx) return
-  ctx.clearRect(0, 0, S, S)
+  ctx.clearRect(0, 0, S, canvasH)
 
   // Background
   if (options.bgMode === 'color') {
@@ -320,16 +327,30 @@ export function renderToCanvas(
       ctx.restore()
     }
   }
+
+  if (frameH > 0) {
+    ctx.fillStyle = options.frameBgColor
+    ctx.fillRect(0, S, S, frameH)
+    ctx.fillStyle = options.frameTextColor
+    ctx.font = `600 ${Math.max(12, Math.round(S * 0.055))}px system-ui, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(options.frameText.trim(), S / 2, S + frameH / 2, S * 0.9)
+  }
 }
 
-export function buildSvg(model: QrModel, options: QrOptions, pixelSize: number): string {
+export function buildSvg(model: QrModel, rawOptions: QrOptions, pixelSize: number): string {
+  const options = sanitizeOptions(rawOptions)
   const S = pixelSize
+  const frameH = options.frameText.trim() ? Math.round(S * FRAME_HEIGHT_RATIO) : 0
+  const canvasH = S + frameH
+  const printHeightMm = options.printSizeMm + (frameH > 0 ? options.printSizeMm * FRAME_HEIGHT_RATIO : 0)
   const L = layout(model, options, S)
   const spec = fillSpec(options, S)
   const parts: string[] = []
 
   parts.push(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${options.printSizeMm}mm" height="${printHeightMm.toFixed(2)}mm" viewBox="0 0 ${S} ${canvasH}">`,
   )
 
   if (spec.mode !== 'solid') {
@@ -347,13 +368,13 @@ export function buildSvg(model: QrModel, options: QrOptions, pixelSize: number):
   const paint = spec.mode === 'solid' ? spec.color : 'url(#qrf)'
 
   if (options.bgMode === 'color') {
-    parts.push(`<rect width="${S}" height="${S}" fill="${options.bgColor}"/>`)
-  } else if (options.bgMode === 'image' && options.bgImage) {
+    parts.push(`<rect width="${S}" height="${canvasH}" fill="${options.bgColor}"/>`)
+  } else if (options.bgMode === 'image' && sanitizeImageDataUrl(options.bgImage)) {
     if (options.bgColor) {
       parts.push(`<rect width="${S}" height="${S}" fill="${options.bgColor}"/>`)
     }
     parts.push(
-      `<image href="${options.bgImage}" width="${S}" height="${S}" preserveAspectRatio="xMidYMid slice"/>`,
+      `<image href="${escapeXmlAttribute(sanitizeImageDataUrl(options.bgImage) ?? '')}" width="${S}" height="${S}" preserveAspectRatio="xMidYMid slice"/>`,
     )
   }
 
@@ -368,7 +389,7 @@ export function buildSvg(model: QrModel, options: QrOptions, pixelSize: number):
   }
 
   const logo = logoGeometry(options, S)
-  if (logo && options.logo) {
+  if (logo && sanitizeImageDataUrl(options.logo)) {
     if (options.logoPlate) {
       parts.push(
         `<path d="${pathD(shapePoly(options.logoShape, logo.plateX, logo.plateY, logo.plateBox, logo.plateBox))}" fill="#ffffff"/>`,
@@ -379,12 +400,29 @@ export function buildSvg(model: QrModel, options: QrOptions, pixelSize: number):
     )
     parts.push(`<clipPath id="lgc"><path d="${clipShape}"/></clipPath>`)
     parts.push(
-      `<image href="${options.logo}" x="${logo.x.toFixed(2)}" y="${logo.y.toFixed(2)}" width="${logo.box.toFixed(2)}" height="${logo.box.toFixed(2)}" preserveAspectRatio="xMidYMid meet" clip-path="url(#lgc)"/>`,
+      `<image href="${escapeXmlAttribute(sanitizeImageDataUrl(options.logo) ?? '')}" x="${logo.x.toFixed(2)}" y="${logo.y.toFixed(2)}" width="${logo.box.toFixed(2)}" height="${logo.box.toFixed(2)}" preserveAspectRatio="xMidYMid meet" clip-path="url(#lgc)"/>`,
+    )
+  }
+
+  if (frameH > 0) {
+    parts.push(
+      `<rect x="0" y="${S}" width="${S}" height="${frameH}" fill="${options.frameBgColor}"/>`,
+    )
+    parts.push(
+      `<text x="${S / 2}" y="${S + frameH / 2}" fill="${options.frameTextColor}" font-family="system-ui, sans-serif" font-size="${Math.max(12, Math.round(S * 0.055))}" font-weight="600" text-anchor="middle" dominant-baseline="middle">${escapeXmlAttribute(options.frameText.trim())}</text>`,
     )
   }
 
   parts.push('</svg>')
   return parts.join('')
+}
+
+function escapeXmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 /** Render a small PNG thumbnail for history previews. */

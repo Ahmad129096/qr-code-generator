@@ -1,0 +1,18 @@
+{
+  "name": "qr-code-generator-browser",
+  "version": "0.1.0",
+  "description": "A browser-only QR code API and embeddable widget",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types/browser.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "unpkg": "./dist/index.iife.js"
+}

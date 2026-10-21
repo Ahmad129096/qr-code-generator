@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { pwaNotices, type PwaNotice } from '../pwa'
+import { useLocale } from '../localeContext'
 
 /** The event Chromium fires when the app can be installed. */
 interface InstallPromptEvent extends Event {
@@ -28,6 +29,7 @@ function isStandalone(): boolean {
  * offline state, the "works offline now" hint and the install button.
  */
 export default function PwaNotices() {
+  const { t } = useLocale()
   const [installEvent, setInstallEvent] = useState<InstallPromptEvent | null>(null)
   const [installed, setInstalled] = useState(() => isStandalone())
   const [online, setOnline] = useState(() => navigator.onLine)
@@ -104,38 +106,38 @@ export default function PwaNotices() {
         <div key={notice} className="pwa-notice">
           {notice === 'update' && (
             <>
-              <span>A new version of the app is ready.</span>
+              <span>{t('updateReady')}</span>
               <button type="button" className="pwa-notice-action" onClick={() => void updateServiceWorker(true)}>
-                Reload
+                {t('reload')}
               </button>
             </>
           )}
 
           {notice === 'offline' && (
             <span className="pwa-notice-warn">
-              You are offline — codes still generate, but nothing is downloaded.
+              {t('offlineMessage')}
             </span>
           )}
 
-          {notice === 'offline-ready' && <span>Ready to work offline.</span>}
+          {notice === 'offline-ready' && <span>{t('offlineReady')}</span>}
 
           {notice === 'install' && !installDismissed && (
             <>
               {installEvent ? (
                 <>
-                  <span>Install the app for quicker access and offline use.</span>
+                  <span>{t('installMessage')}</span>
                   <button type="button" className="pwa-notice-action" onClick={() => void install()}>
-                    Install
+                    {t('install')}
                   </button>
                 </>
               ) : (
-                <span>Add it to your home screen: tap Share → “Add to Home Screen”.</span>
+                <span>{t('iosInstall')}</span>
               )}
               <button
                 type="button"
                 className="pwa-notice-dismiss"
                 onClick={() => setInstallDismissed(true)}
-                aria-label="Dismiss the install hint"
+                aria-label={t('dismissInstall')}
               >
                 ×
               </button>

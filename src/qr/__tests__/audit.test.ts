@@ -5,6 +5,7 @@ import {
   EC_RECOVERY,
   QUIET_ZONE_MODULES,
   assessContrast,
+  assessFrameContrast,
   assessLogo,
   assessLogoEc,
   assessPrintSize,
@@ -91,6 +92,15 @@ describe('assessContrast', () => {
     const f = assessContrast(opts({ fgColor: '#000000', bgColor: '#ffffff' }))
     expect(f.severity).toBe('ok')
     expect(f.id).toBe('contrast')
+  })
+
+  describe('assessFrameContrast', () => {
+    it('checks CTA text contrast and skips an unused frame', () => {
+      expect(assessFrameContrast(opts({ frameText: 'Scan now' }))?.severity).toBe('ok')
+      expect(assessFrameContrast(opts({ frameText: 'Scan now', frameBgColor: '#ffffff' }))?.severity)
+        .toBe('error')
+      expect(assessFrameContrast(opts()) ).toBeNull()
+    })
   })
 
   it('warns between the floor and the good threshold', () => {

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { decodeImage, startScanner, type DecodeResult, type ScannerHandle } from '../qr/decode'
+import { useLocale } from '../localeContext'
 
 export default function ScannerPanel() {
+  const { t } = useLocale()
   const videoRef = useRef<HTMLVideoElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
   const handleRef = useRef<ScannerHandle | null>(null)
@@ -97,24 +99,24 @@ export default function ScannerPanel() {
     <div className="scanner">
       <div className="scanner-grid">
         <div className="scanner-camera">
-          <video ref={videoRef} playsInline muted />
+          <video ref={videoRef} playsInline muted aria-label={t('scanQr')} />
           <canvas ref={overlayRef} className="scanner-overlay" />
           {!scanning && (
             <div className="scanner-idle">
               <svg width="46" height="46" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm10-2h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z" />
               </svg>
-              <p>Point your camera at a QR code.</p>
+              <p>{t('pointCamera')}</p>
             </div>
           )}
           <div className="scanner-controls">
             {!scanning ? (
               <button type="button" onClick={start}>
-                Start camera
+                {t('startCamera')}
               </button>
             ) : (
               <button type="button" className="secondary" onClick={stop}>
-                Stop camera
+                {t('stopCamera')}
               </button>
             )}
           </div>
@@ -122,9 +124,9 @@ export default function ScannerPanel() {
         </div>
 
         <div className="scanner-side">
-          <h3>Result</h3>
+          <h3>{t('scanResult')}</h3>
           {result ? (
-            <div className="scan-result">
+            <div className="scan-result" role="status" aria-live="polite">
               <p className="scan-data">{result.data}</p>
               <div className="scan-actions">
                 {looksLikeUrl && (
@@ -134,19 +136,19 @@ export default function ScannerPanel() {
                     target="_blank"
                     rel="noreferrer noopener"
                   >
-                    Open link
+                    {t('openLink')}
                   </a>
                 )}
                 <button type="button" onClick={() => void copyResult()}>
-                  {copied ? 'Copied!' : 'Copy text'}
+                  {copied ? t('copied') : t('copyText')}
                 </button>
               </div>
             </div>
           ) : (
-            <p className="history-empty">Nothing scanned yet.</p>
+            <p className="history-empty">{t('nothingScanned')}</p>
           )}
 
-          <h3>Scan from an image</h3>
+          <h3>{t('scanImage')}</h3>
           <div
             className={`scanner-drop${imgDrag ? ' dragover' : ''}`}
             onDragOver={(e) => {
@@ -160,9 +162,9 @@ export default function ScannerPanel() {
               void handleUpload(e.dataTransfer.files?.[0])
             }}
           >
-            <p>Drop a screenshot or photo here</p>
+            <p>{t('dropImage')}</p>
             <label className="upload-btn">
-              Choose image…
+              {t('chooseImage')}
               <input
                 type="file"
                 accept="image/*"

@@ -1,5 +1,7 @@
 import type { ChangeEvent } from 'react'
 import type { FieldDef } from '../qrTypes'
+import { localizeTerm } from '../locale'
+import { useLocale } from '../localeContext'
 
 interface Props {
   fields: FieldDef[]
@@ -8,6 +10,7 @@ interface Props {
 }
 
 export default function DynamicForm({ fields, data, onChange }: Props) {
+  const { locale } = useLocale()
   return (
     <div className="form-grid">
       {fields.map((field) => {
@@ -23,7 +26,7 @@ export default function DynamicForm({ fields, data, onChange }: Props) {
                 checked={Boolean(value)}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(field.key, e.target.checked)}
               />
-              <span>{field.label}</span>
+              <span>{localizeTerm(locale, field.label)}</span>
             </label>
           )
         }
@@ -31,7 +34,7 @@ export default function DynamicForm({ fields, data, onChange }: Props) {
         if (field.type === 'select') {
           return (
             <label key={field.key} className="field">
-              <span className="field-label">{field.label}</span>
+              <span className="field-label">{localizeTerm(locale, field.label)}</span>
               <select
                 id={id}
                 value={String(value ?? '')}
@@ -39,7 +42,7 @@ export default function DynamicForm({ fields, data, onChange }: Props) {
               >
                 {field.options?.map((opt) => (
                   <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {localizeTerm(locale, opt.label)}
                   </option>
                 ))}
               </select>
@@ -51,13 +54,14 @@ export default function DynamicForm({ fields, data, onChange }: Props) {
           return (
             <label key={field.key} className="field field-wide">
               <span className="field-label">
-                {field.label}
-                {field.required && <span className="required">*</span>}
+                {localizeTerm(locale, field.label)}
+                {field.required && <span className="required" aria-hidden="true">*</span>}
               </span>
               <textarea
                 id={id}
                 value={String(value ?? '')}
                 placeholder={field.placeholder}
+                required={field.required}
                 rows={3}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onChange(field.key, e.target.value)}
               />
@@ -68,14 +72,15 @@ export default function DynamicForm({ fields, data, onChange }: Props) {
         return (
           <label key={field.key} className="field">
             <span className="field-label">
-              {field.label}
-              {field.required && <span className="required">*</span>}
+              {localizeTerm(locale, field.label)}
+              {field.required && <span className="required" aria-hidden="true">*</span>}
             </span>
             <input
               id={id}
               type={field.type === 'password' ? 'password' : 'text'}
               value={String(value ?? '')}
               placeholder={field.placeholder}
+              required={field.required}
               autoComplete="off"
               onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(field.key, e.target.value)}
             />

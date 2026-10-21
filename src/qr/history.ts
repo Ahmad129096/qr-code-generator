@@ -160,6 +160,9 @@ export function styleSignature(o: QrOptions): string {
     o.logoSize,
     o.logoShape,
     o.logoPlate ? 1 : 0,
+    o.frameText,
+    o.frameTextColor,
+    o.frameBgColor,
     o.margin,
     o.errorCorrectionLevel,
   ].join('|')

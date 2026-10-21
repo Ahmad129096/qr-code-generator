@@ -19,7 +19,14 @@ function state(overrides: Partial<ShareState> = {}): ShareState {
 describe('share state', () => {
   it('round-trips type, fields and style', () => {
     const original = state({
-      options: { ...defaultOptions(), fgColor: '#ff00aa', errorCorrectionLevel: 'H' },
+      options: {
+        ...defaultOptions(),
+        fgColor: '#ff00aa',
+        errorCorrectionLevel: 'H',
+        frameText: 'SCAN TO CONNECT',
+        printPreset: 'business-card',
+        printSizeMm: 32,
+      },
     })
     const decoded = decodeShareState(encodeShareState(original))
     expect(decoded).not.toBeNull()
@@ -27,6 +34,9 @@ describe('share state', () => {
     expect(decoded?.formData).toEqual({ ssid: 'MyNetwork', password: 'hunter2' })
     expect(decoded?.options.fgColor).toBe('#ff00aa')
     expect(decoded?.options.errorCorrectionLevel).toBe('H')
+    expect(decoded?.options.frameText).toBe('SCAN TO CONNECT')
+    expect(decoded?.options.printPreset).toBe('business-card')
+    expect(decoded?.options.printSizeMm).toBe(32)
   })
 
   it('handles non-ASCII field values', () => {
@@ -77,6 +87,26 @@ describe('share state', () => {
   it('fills missing options with defaults', () => {
     const decoded = decodeShareState(encodeShareState(state()))
     expect(decoded?.options).toEqual(defaultOptions())
+  })
+
+  it('sanitizes hostile option values in an incoming fragment', () => {
+    const raw = JSON.stringify({
+      t: 'wifi',
+      d: { ssid: 'Guest' },
+      o: {
+        size: Number.MAX_VALUE,
+        margin: -1,
+        moduleShape: 'script',
+        logo: 'data:image/png;base64,AAAA" onload="alert(1)',
+      },
+    })
+    const hash = `#s=${btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
+    const decoded = decodeShareState(hash)
+
+    expect(decoded?.options.size).toBe(defaultOptions().size)
+    expect(decoded?.options.margin).toBe(defaultOptions().margin)
+    expect(decoded?.options.moduleShape).toBe(defaultOptions().moduleShape)
+    expect(decoded?.options.logo).toBeNull()
   })
 
   it('builds a URL that replaces an existing fragment', () => {

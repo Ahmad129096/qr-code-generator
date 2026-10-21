@@ -144,7 +144,7 @@ export default function QrPreview({
   return (
     <div className="qr-preview">
       <div
-        className="qr-canvas-wrap"
+        className={`qr-canvas-wrap${options.frameText.trim() ? ' has-frame' : ''}`}
         style={{
           background:
             options.bgMode === 'transparent'
@@ -155,7 +155,11 @@ export default function QrPreview({
         }}
       >
         {value && model ? (
-          <canvas ref={canvasRef} />
+          <canvas
+            ref={canvasRef}
+            role="img"
+            aria-label={`QR code preview for ${truncate(value, 80)}`}
+          />
         ) : (
           <p className="qr-empty-hint" style={{ color: hintColor }}>
             <svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -170,8 +174,16 @@ export default function QrPreview({
           {truncate(value, 64)}
         </p>
       )}
-      {error && <p className="qr-error">{error}</p>}
-      {note && <p className="qr-note">{note}</p>}
+      {error && (
+        <p className="qr-error" role="alert">
+          {error}
+        </p>
+      )}
+      {note && (
+        <p className="qr-note" role="status">
+          {note}
+        </p>
+      )}
 
       <ScanAuditPanel
         model={model}

@@ -11,37 +11,93 @@ export interface BatchItem {
 
 export type BatchFormat = 'png' | 'svg' | 'both'
 
+export const MAX_BATCH_FILE_BYTES = 1024 * 1024
+export const MAX_BATCH_INPUT_CHARACTERS = 1_000_000
+export const MAX_BATCH_ITEMS = 100
+export const MAX_BATCH_VALUE_BYTES = 2048
+
 export class BatchParseError extends Error {}
 
-/** Split a CSV line honouring quotes. */
-function splitCsvLine(line: string): string[] {
-  const out: string[] = []
-  let cur = ''
+export interface BatchGenerationResult {
+  blob: Blob
+  skipped: string[]
+}
+
+function assertInputSize(text: string): void {
+  if (text.length > MAX_BATCH_INPUT_CHARACTERS) {
+    throw new BatchParseError(
+      `Input is too large. Keep pasted or uploaded data under ${MAX_BATCH_INPUT_CHARACTERS.toLocaleString()} characters.`,
+    )
+  }
+}
+
+/** Parse CSV records, including quoted commas, escaped quotes and newlines. */
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
+  let field = ''
   let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
+  let afterQuote = false
+
+  const finishField = () => {
+    row.push(field.trim())
+    field = ''
+    afterQuote = false
+  }
+  const finishRow = () => {
+    finishField()
+    if (row.some((cell) => cell.length > 0)) rows.push(row)
+    row = []
+  }
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i] ?? ''
     if (inQuotes) {
       if (ch === '"') {
-        if (line[i + 1] === '"') {
-          cur += '"'
+        if (text[i + 1] === '"') {
+          field += '"'
           i++
         } else {
           inQuotes = false
+          afterQuote = true
         }
       } else {
-        cur += ch
+        field += ch
       }
-    } else if (ch === '"') {
+      continue
+    }
+
+    if (afterQuote) {
+      if (ch === ',') {
+        finishField()
+      } else if (ch === '\r' || ch === '\n') {
+        finishRow()
+        if (ch === '\r' && text[i + 1] === '\n') i++
+      } else if (!/\s/.test(ch)) {
+        throw new BatchParseError('Unexpected content after a quoted CSV field.')
+      }
+      continue
+    }
+
+    if (ch === '"') {
+      if (field.trim() !== '') {
+        throw new BatchParseError('A quote can only start at the beginning of a CSV field.')
+      }
+      field = ''
       inQuotes = true
     } else if (ch === ',') {
-      out.push(cur)
-      cur = ''
+      finishField()
+    } else if (ch === '\r' || ch === '\n') {
+      finishRow()
+      if (ch === '\r' && text[i + 1] === '\n') i++
     } else {
-      cur += ch
+      field += ch
     }
   }
-  out.push(cur)
-  return out.map((s) => s.trim())
+
+  if (inQuotes) throw new BatchParseError('A quoted CSV field was not closed.')
+  if (field.length > 0 || row.length > 0 || afterQuote) finishRow()
+  return rows
 }
 
 const VALUE_KEYS = ['value', 'data', 'content', 'text', 'url', 'link', 'payload']
@@ -62,52 +118,46 @@ function pickKey(obj: Record<string, unknown>, keys: string[]): string | null {
  * first column is the value and the second (if present) the label.
  */
 export function parseCsv(text: string): BatchItem[] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0)
-  if (lines.length === 0) throw new BatchParseError('The CSV file is empty.')
+  assertInputSize(text)
+  const rows = parseCsvRows(text)
+  if (rows.length === 0) throw new BatchParseError('The CSV file is empty.')
 
-  const [firstLine] = lines
-  const first = splitCsvLine(firstLine ?? '').map((h) => h.toLowerCase())
+  const first = (rows[0] ?? []).map((h) => h.toLowerCase())
   const headerIdx = first.findIndex((h) => VALUE_KEYS.includes(h))
-  const hasHeader = headerIdx >= 0 && lines.length > 1
+  const hasHeader = headerIdx >= 0
 
   const items: BatchItem[] = []
   if (hasHeader) {
+    if (rows.length === 1) throw new BatchParseError('The CSV header has no data rows.')
     const valueIdx = headerIdx
     const labelIdx = first.findIndex((h) => LABEL_KEYS.includes(h))
-    if (valueIdx < 0) {
-      throw new BatchParseError('No value column found (expected e.g. "url" or "value").')
-    }
-    for (const line of lines.slice(1)) {
-      const cells = splitCsvLine(line)
+    for (const cells of rows.slice(1)) {
       const value = cells[valueIdx]?.trim()
       if (!value) continue
       const label = labelIdx >= 0 ? cells[labelIdx]?.trim() : ''
       items.push({ value, label: label || '' })
     }
   } else {
-    for (const line of lines) {
-      const cells = splitCsvLine(line)
+    for (const cells of rows) {
       const value = cells[0]?.trim()
       if (!value) continue
       items.push({ value, label: cells[1]?.trim() || '' })
     }
   }
   if (items.length === 0) throw new BatchParseError('No rows found in the CSV file.')
-  return items
+  return validateBatchItems(items)
 }
 
 /** Parse JSON: an array of strings, or of objects with a value/label field. */
 export function parseJson(text: string): BatchItem[] {
+  assertInputSize(text)
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch {
     throw new BatchParseError('The JSON file is not valid JSON.')
   }
-  const arr = Array.isArray(data) ? data : (data as { items?: unknown }).items
+  const arr = Array.isArray(data) ? data : isRecord(data) ? data['items'] : null
   if (!Array.isArray(arr)) {
     throw new BatchParseError('Expected a JSON array (or { "items": [...] }).')
   }
@@ -128,6 +178,25 @@ export function parseJson(text: string): BatchItem[] {
   if (items.length === 0) {
     throw new BatchParseError('No usable entries found in the JSON file.')
   }
+  return validateBatchItems(items)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function validateBatchItems(items: BatchItem[]): BatchItem[] {
+  if (items.length > MAX_BATCH_ITEMS) {
+    throw new BatchParseError(`A batch can contain at most ${MAX_BATCH_ITEMS} codes.`)
+  }
+  const encoder = new TextEncoder()
+  for (const [index, item] of items.entries()) {
+    if (encoder.encode(item.value).byteLength > MAX_BATCH_VALUE_BYTES) {
+      throw new BatchParseError(
+        `Row ${index + 1} is too long. Each QR value must be at most ${MAX_BATCH_VALUE_BYTES.toLocaleString()} UTF-8 bytes.`,
+      )
+    }
+  }
   return items
 }
 
@@ -140,6 +209,12 @@ function safeName(s: string, fallback: string): string {
   return cleaned || fallback
 }
 
+function skippedLabel(item: BatchItem, index: number): string {
+  const label = (item.label || item.value).replace(/\s+/g, ' ').trim()
+  if (!label) return `Row ${index + 1}`
+  return label.length > 60 ? `${label.slice(0, 57)}...` : label
+}
+
 /**
  * Generate a ZIP with one PNG/SVG per item. Uses each item's label as the
  * file name; duplicates get a numeric suffix.
@@ -149,18 +224,20 @@ export async function generateZip(
   options: QrOptions,
   format: BatchFormat,
   onProgress?: (done: number, total: number) => void,
-): Promise<Blob> {
+): Promise<BatchGenerationResult> {
+  validateBatchItems(items)
+  if (items.length === 0) throw new BatchParseError('Nothing to generate.')
   const zip = new JSZip()
   const assets = await loadAssets({ logo: options.logo, bgImage: options.bgImage })
   const used = new Set<string>()
-  const failures: string[] = []
+  const skipped: string[] = []
 
   for (const [i, item] of items.entries()) {
     let model: QrModel
     try {
       model = createModel(item.value, options.errorCorrectionLevel)
     } catch {
-      failures.push(item.label || item.value.slice(0, 30))
+      skipped.push(skippedLabel(item, i))
       onProgress?.(i + 1, items.length)
       continue
     }
@@ -186,14 +263,11 @@ export async function generateZip(
 
   if (used.size === 0) {
     throw new BatchParseError(
-      failures.length > 0
-        ? 'None of the entries could be encoded.'
+      skipped.length > 0
+        ? `None of the entries could be encoded. Skipped: ${skipped.slice(0, 5).join(', ')}${skipped.length > 5 ? ` and ${skipped.length - 5} more` : ''}.`
         : 'Nothing to generate.',
     )
   }
   const blob = await zip.generateAsync({ type: 'blob' })
-  if (failures.length > 0) {
-    console.warn('Skipped items that could not be encoded:', failures)
-  }
-  return blob
+  return { blob, skipped }
 }

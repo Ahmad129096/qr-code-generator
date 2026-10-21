@@ -38,6 +38,7 @@ export default function ScanAuditPanel({ model, value, options, onApplyErrorCorr
   const signature = `${value}|${JSON.stringify(options)}`
   const [scanState, setScanState] = useState<{ sig: string; result: TestScanResult } | null>(null)
   const [scanning, setScanning] = useState(false)
+  const [scanError, setScanError] = useState('')
   const scan = scanState?.sig === signature ? scanState.result : null
 
   const findings = useMemo<AuditFinding[]>(() => {
@@ -62,10 +63,14 @@ export default function ScanAuditPanel({ model, value, options, onApplyErrorCorr
     if (!model) return
     const sig = signature
     setScanning(true)
-    // Let the button state paint before the synchronous decode work.
+    setScanError('')
+    setScanState(null)
+    // Let the button state paint before loading assets and decoding.
     await new Promise((r) => setTimeout(r, 0))
     try {
-      setScanState({ sig, result: testScan(model, options) })
+      setScanState({ sig, result: await testScan(model, options) })
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : 'The test scan could not be completed.')
     } finally {
       setScanning(false)
     }
@@ -135,6 +140,7 @@ export default function ScanAuditPanel({ model, value, options, onApplyErrorCorr
 
       <div className="audit-live" role="status" aria-live="polite">
         {scanning && 'Testing this code…'}
+        {!scanning && scanError && `Test scan could not be completed: ${scanError}`}
         {!scanning && scan && (
           <>
             {scan.pass

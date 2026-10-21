@@ -18,12 +18,17 @@ all in your browser (nothing is uploaded anywhere).
 - Independent finder-eye shapes (eye frame + pupil).
 - Backgrounds: solid color, fully transparent, or a custom image.
 - Center logo overlay with shape (square/rounded/circle), size, and optional white plate.
+- Custom call-to-action frame text with adjustable foreground/background colors.
+- Extract a local color palette from the uploaded logo and apply colors to the QR design.
+- Starter templates for restaurant menus, events, business cards, and Wi-Fi signs.
 - Adjustable quiet zone and error-correction level.
 
 **Export**
 
-- PNG at 1×–8× scale (high-DPI), SVG vector, print-ready PDF (physical mm sizing, sheet tiling,
-  margins, captions), and EPS vector (gradient sampled per module).
+- PNG at 1×–8× scale (high-DPI), SVG vector with physical sizing, print-ready PDF (A4 sheet,
+  business card, A4 poster, or paired A4 table-tent layout), and EPS vector.
+- Frames are included in the preview, PNG, SVG, and PDF output. PDF print layouts preserve the
+  selected physical QR size and place the table-tent design on both panels.
 - Copy image straight to the clipboard.
 
 **History & presets** — recent codes and saved styles persist in `localStorage` (browser-local only).
@@ -35,7 +40,9 @@ the URL fragment, so nothing is sent to a server. The link warns you when it car
 **Scan** — decode QR codes with your webcam or by uploading an image (uses `jsqr`).
 
 **Batch** — paste rows or upload a CSV/JSON file and download a ZIP of PNG and/or SVG codes,
-styled with your current settings (uses `jszip`).
+styled with your current settings (uses `jszip`). Quoted multiline CSV fields are supported.
+To keep processing local and responsive, inputs are limited to 1 MiB, 100 codes per batch, and
+2,048 UTF-8 bytes per QR value; rows that exceed QR capacity are listed after download.
 
 **Pages** — every content type has its own landing page and URL, for example
 `/wifi-qr-code-generator`, `/vcard-qr-code-generator` or `/event-qr-code-generator`. The URLs
@@ -46,6 +53,21 @@ static HTML file with its own title, description and structured data (see
 **Installable app** — the site is a PWA: it can be installed on the home screen (Android, Chrome,
 Edge) and works completely offline once installed (see
 [Progressive web app](#progressive-web-app-pwa)).
+
+**Developer API and widget** — the separate `qr-code-generator-browser` package provides a
+browser-only TypeScript API for SVG/PNG generation and an accessible embeddable widget. It uses the
+same QR engine as the app and does not send QR content to a server. See
+[the package guide](./packages/qr-browser/README.md) for npm and script-tag examples. The package
+can be built with `npm run build:browser-package`.
+
+**Color theme** — light, dark or “follow the system”. The choice is remembered on the device; the
+page never flashes in the wrong colors.
+
+**Language & accessibility** — choose English, Urdu or Arabic. The selection is stored locally;
+Urdu and Arabic enable right-to-left layout and update the document language and direction for
+assistive technology. Core navigation, generator controls and field labels, templates, and the
+scanner, batch and PWA notices are translated. Landing-page SEO copy and some detailed help and
+error messages remain English.
 
 ## Getting started
 
@@ -73,9 +95,14 @@ npm run build    # strict typecheck + production build
   the page during client-side navigation (the static build ships the tags for direct visits).
 - `src/pwa.ts` — the web app manifest and the rules for the PWA notices; `src/components/PwaNotices.tsx`
   renders them. The Vite config reads the same manifest, so the app and the build never drift apart.
+- `src/theme.ts` — the color theme (auto / light / dark): the preference, the resolved theme and
+  the `data-theme` attribute the CSS tokens react to. A tiny inline script in `index.html` sets the
+  attribute before the first paint, so there is no flash of the wrong theme.
 - `scripts/` — build-time only: the static HTML/sitemap/robots generator and the PNG writer for
   the icons and the Open Graph image.
-- `src/qr/` — framework-free core: `options.ts` (types + presets), `geometry.ts` (shared shape
+- `src/qr/` — framework-free core: `options.ts` (types + presets), `templates.ts` (content and
+  style starters), `palette.ts` (local logo color extraction), `print.ts` (physical PDF page
+  layouts), `geometry.ts` (shared shape
   polygons/path data), `render.ts` (canvas + SVG rendering from the raw module matrix),
   `exporters.ts` (PNG/SVG/PDF/EPS/clipboard), `history.ts` (localStorage), `share.ts` (URL-fragment
   share links), `clipboard.ts`, `batch.ts` (CSV/JSON parsing + ZIP), `decode.ts` (image/webcam
@@ -115,6 +142,11 @@ VITE_SITE_URL=https://qr.example.com npm run build
 
 Without it the build still succeeds, but it skips the sitemap, robots.txt and the per-page static
 HTML (and prints a warning) rather than pointing canonical links at a wrong domain.
+
+The “Support this project” link in the footer points to the first of `VITE_KOFI_URL`,
+`VITE_BUY_ME_A_COFFEE_URL` or `VITE_GITHUB_SPONSORS_URL` that is set — and to the GitHub Sponsors
+page of the repository owner when none of them is. Set them in the build environment to point the
+button at your own page.
 
 The copy lives in `src/landing.ts`; the generator is in `scripts/static-pages.ts` and the small
 dependency-free PNG writer (icons + Open Graph image) is in `scripts/images.ts`.

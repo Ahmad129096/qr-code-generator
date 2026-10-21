@@ -1,6 +1,7 @@
 import type { HistoryEntry } from '../qr/history'
 import { clearHistory, removeHistory } from '../qr/history'
 import { QR_TYPES } from '../qrTypes'
+import { useLocale } from '../localeContext'
 
 interface Props {
   entries: HistoryEntry[]
@@ -22,14 +23,12 @@ function typeLabel(typeId?: string): string | undefined {
 }
 
 export default function HistoryPanel({ entries, onChange, onRestore }: Props) {
+  const { t } = useLocale()
   if (entries.length === 0) {
     return (
       <section className="panel history-panel">
-        <h2>History</h2>
-        <p className="history-empty">
-          Codes you generate are kept here (in this browser only) so you can bring them back —
-          click one to restore its content and style.
-        </p>
+        <h2>{t('history')}</h2>
+        <p className="history-empty">{t('historyEmpty')}</p>
       </section>
     )
   }
@@ -37,9 +36,9 @@ export default function HistoryPanel({ entries, onChange, onRestore }: Props) {
   return (
     <section className="panel history-panel">
       <div className="history-head">
-        <h2>History</h2>
+        <h2>{t('history')}</h2>
         <button type="button" className="link-btn" onClick={() => onChange(clearAll())}>
-          Clear all
+          {t('clearAll')}
         </button>
       </div>
       <ul className="history-list">
@@ -51,7 +50,7 @@ export default function HistoryPanel({ entries, onChange, onRestore }: Props) {
                 type="button"
                 className="history-main"
                 onClick={() => onRestore(entry)}
-                title="Restore this code"
+                title={t('restoreCode')}
               >
                 <span className="history-thumb">
                   {entry.thumb ? (
@@ -71,7 +70,7 @@ export default function HistoryPanel({ entries, onChange, onRestore }: Props) {
               <button
                 type="button"
                 className="history-remove"
-                aria-label="Remove from history"
+                aria-label={t('removeHistory')}
                 onClick={() => onChange(removeHistory(entry.id))}
               >
                 ×

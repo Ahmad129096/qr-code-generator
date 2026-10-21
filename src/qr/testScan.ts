@@ -1,5 +1,6 @@
 import { decodeImageData } from './decode'
 import type { QrOptions } from './options'
+import { loadAssets } from './images'
 import { renderToCanvas, type QrModel } from './render'
 
 export interface TestScanResult {
@@ -23,10 +24,11 @@ const SCAN_SIZE = 480
  * This is a best-case check — a crisp render is easier to read than a
  * camera photo — so a pass is reassuring, not a guarantee.
  */
-export function testScan(model: QrModel, options: QrOptions): TestScanResult {
+export async function testScan(model: QrModel, options: QrOptions): Promise<TestScanResult> {
   const expected = model.value
+  const assets = await loadAssets({ logo: options.logo, bgImage: options.bgImage })
   const rendered = document.createElement('canvas')
-  renderToCanvas(rendered, model, options, SCAN_SIZE)
+  renderToCanvas(rendered, model, options, SCAN_SIZE, assets)
 
   // Flatten onto white paper so transparent pixels don't read as black.
   const canvas = document.createElement('canvas')

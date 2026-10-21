@@ -11,6 +11,7 @@ export type AuditSeverity = 'ok' | 'warn' | 'error'
 
 export type FindingId =
   | 'contrast'
+  | 'frame-contrast'
   | 'background'
   | 'quiet-zone'
   | 'print-size'
@@ -146,6 +147,33 @@ export function assessContrast(o: QrOptions): AuditFinding {
     severity: 'error',
     message: `Contrast is too low (${worst.toFixed(1)}:1) — the code may not scan.`,
     suggestion: 'Pick colors further apart, e.g. dark modules on a light background.',
+  }
+}
+
+/** Check whether call-to-action text remains legible against its frame. */
+export function assessFrameContrast(o: QrOptions): AuditFinding | null {
+  if (!o.frameText.trim()) return null
+  const ratio = contrastRatio(o.frameTextColor, o.frameBgColor)
+  if (ratio >= CONTRAST_GOOD) {
+    return {
+      id: 'frame-contrast',
+      severity: 'ok',
+      message: `Frame text contrast is good (${ratio.toFixed(1)}:1).`,
+    }
+  }
+  if (ratio >= CONTRAST_FLOOR) {
+    return {
+      id: 'frame-contrast',
+      severity: 'warn',
+      message: `Frame text contrast is low (${ratio.toFixed(1)}:1) — some readers may find it hard to read.`,
+      suggestion: 'Choose frame text and background colors with 4.5:1 contrast or higher.',
+    }
+  }
+  return {
+    id: 'frame-contrast',
+    severity: 'error',
+    message: `Frame text contrast is too low (${ratio.toFixed(1)}:1).`,
+    suggestion: 'Choose frame text and background colors with 4.5:1 contrast or higher.',
   }
 }
 
@@ -369,6 +397,7 @@ export interface AuditInput {
 export function auditCode({ options, modules }: AuditInput): AuditFinding[] {
   return [
     assessContrast(options),
+    assessFrameContrast(options),
     assessQuietZone(options.margin),
     assessPrintSize(options.printSizeMm, modules, options.margin),
     assessLogoEc(options, modules),

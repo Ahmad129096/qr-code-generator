@@ -31,34 +31,35 @@
   --radius-sm: 9px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
+/* The dark palette is switched on by the `data-theme` attribute. A tiny inline
+   script in index.html sets it before the first paint (following the system
+   unless the visitor picked a theme), so the page never flashes. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
 
-    --bg: #101218;
-    --bg-accent: #191c2b;
-    --panel: #191c23;
-    --panel-soft: #1f232c;
-    --text: #e9ebef;
-    --text-soft: #aab0bb;
-    --text-mute: #8b91a0;
-    --border: #2d323c;
-    --border-soft: #262b34;
-    --accent: #7d80f4;
-    --accent-strong: #9497ff;
-    /* The bright dark-mode accent is too light for white text — filled
-       surfaces keep the deeper brand color instead. */
-    --accent-solid: #4c4fe0;
-    --accent-solid-strong: #3d40c4;
-    --accent-soft: #242647;
-    --accent-contrast: #ffffff;
-    --danger: #ef6b6b;
-    --ok: #52c07a;
-    --warn: #e0a83a;
-    --chip: #242932;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    --shadow-lift: 0 6px 18px rgba(0, 0, 0, 0.45);
-  }
+  --bg: #101218;
+  --bg-accent: #191c2b;
+  --panel: #191c23;
+  --panel-soft: #1f232c;
+  --text: #e9ebef;
+  --text-soft: #aab0bb;
+  --text-mute: #8b91a0;
+  --border: #2d323c;
+  --border-soft: #262b34;
+  --accent: #7d80f4;
+  --accent-strong: #9497ff;
+  /* The bright dark-mode accent is too light for white text — filled
+     surfaces keep the deeper brand color instead. */
+  --accent-solid: #4c4fe0;
+  --accent-solid-strong: #3d40c4;
+  --accent-soft: #242647;
+  --accent-contrast: #ffffff;
+  --danger: #ef6b6b;
+  --ok: #52c07a;
+  --warn: #e0a83a;
+  --chip: #242932;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -80,6 +81,19 @@ button {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Visible for screen readers only. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ============================================================
@@ -119,7 +133,7 @@ button {
   display: inline-block;
   width: 12px;
   height: 12px;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   border-radius: 3px;
   background: linear-gradient(135deg, var(--accent), #22d3ee);
   transform: translateY(-1px);
@@ -129,6 +143,184 @@ button {
   margin: 0;
   color: var(--text-soft);
   font-size: 14px;
+}
+
+/* ---- Skip link: the first thing keyboard users reach ---- */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: -9999px;
+  z-index: 50;
+  padding: 11px 18px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  background: var(--accent-solid);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* ---- Theme switcher (auto / light / dark) ---- */
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+}
+
+.theme-switcher-label {
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.theme-options {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.theme-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-option:hover {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.theme-option.active {
+  background: var(--accent-solid);
+  color: var(--accent-contrast);
+}
+
+/* The radio is painted as a small dot, so it is always part of the page for
+   screen readers and for people who cannot rely on the highlighted label. */
+.theme-option input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: var(--panel);
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.theme-option input:checked {
+  border-color: var(--accent);
+}
+
+.theme-option input:checked::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* On the highlighted option the circle turns white, so the dot keeps the
+   brand color. */
+.theme-option.active input {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.theme-option.active input:checked {
+  border-color: #ffffff;
+}
+
+.theme-option.active input:checked::after {
+  background: var(--accent-solid);
+}
+
+/* The focus ring sits on the label, around the radio. */
+.theme-option input:focus-visible {
+  outline: none;
+}
+
+.theme-option:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .theme-switcher-label {
+    display: none;
+  }
+}
+
+/* ---- Privacy note ---- */
+.privacy-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 18px;
+  color: var(--text-soft);
+  font-size: 13.5px;
+}
+
+/* ---- Footer ---- */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-soft);
+  font-size: 13.5px;
+}
+
+.footer-note {
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  gap: 18px;
+}
+
+.footer-links a {
+  color: var(--text-soft);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.footer-links a:hover {
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+
+.footer-links .support-link {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.footer-links .support-link:hover {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent);
 }
 
 /* ---- Landing hero (SEO headline block) ---- */
@@ -166,7 +358,7 @@ button {
 
 .landing-points li {
   position: relative;
-  padding-left: 20px;
+  padding-inline-start: 20px;
   color: var(--text-soft);
   font-size: 13.5px;
 }
@@ -174,7 +366,7 @@ button {
 .landing-points li::before {
   content: '✓';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   color: var(--ok);
   font-weight: 700;
 }
@@ -341,7 +533,7 @@ button {
 
 .required {
   color: var(--danger);
-  margin-left: 3px;
+  margin-inline-start: 3px;
 }
 
 .field input[type='text'],
@@ -484,7 +676,7 @@ button {
   color: var(--text-mute);
   margin: 10px 0 0;
   background: var(--panel-soft);
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
   padding: 8px 10px;
   border-radius: 0 8px 8px 0;
 }
@@ -665,10 +857,102 @@ button {
   box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.04);
 }
 
+.qr-canvas-wrap.has-frame {
+  aspect-ratio: auto;
+  min-height: 0;
+}
+
 .qr-canvas-wrap canvas {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
+}
+
+.template-picker {
+  margin: 0 0 18px;
+  padding: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.template-picker-heading {
+  margin-bottom: 12px;
+}
+
+.template-picker-heading h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.template-picker-heading p {
+  margin: 0;
+  color: var(--text-mute);
+  font-size: 12.5px;
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-soft);
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+}
+
+.template-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.template-card strong {
+  font-size: 13px;
+}
+
+.template-card span {
+  color: var(--text-mute);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.brand-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.brand-color {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--panel);
+  outline: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.brand-color:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .template-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .qr-empty-hint {
@@ -839,7 +1123,7 @@ button {
   border: none;
   background: none;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 
 .history-thumb {
@@ -1119,6 +1403,17 @@ button {
 .batch-summary p {
   margin: 0;
   font-size: 13.5px;
+}
+
+.batch-warning {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--panel-soft);
+  color: var(--text-soft);
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .batch-preview {
