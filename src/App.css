@@ -1742,3 +1742,145 @@ button {
     display: none;
   }
 }
+.dynamic-qr-panel {
+  margin-block-start: 2rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--border);
+}
+
+.dynamic-toggle {
+  margin-block-start: 1rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  color: var(--text);
+  background: var(--panel-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dynamic-qr-panel h3,
+.dynamic-qr-panel h4 {
+  margin-block: 0 0.75rem;
+}
+
+.dynamic-qr-panel > p,
+.dynamic-qr-panel form > p,
+.dynamic-key-warning {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.dynamic-privacy-note,
+.dynamic-key-warning {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--panel-soft);
+}
+
+.dynamic-field {
+  display: grid;
+  gap: 0.4rem;
+  margin-block: 0.9rem;
+  font-weight: 600;
+}
+
+.dynamic-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  color: var(--text);
+  background: var(--panel);
+  font: inherit;
+}
+
+.dynamic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+.dynamic-qr-panel button {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  color: var(--text);
+  background: var(--panel);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dynamic-qr-panel button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dynamic-turnstile {
+  margin-block: 1rem;
+}
+
+.dynamic-domain-record {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+  gap: 0.45rem;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
+
+.dynamic-domain-record dd {
+  margin: 0;
+}
+
+.dynamic-created,
+.dynamic-code-item {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.dynamic-qr-result {
+  width: min(100%, 18rem);
+  margin: 1rem auto;
+  padding: 0.75rem;
+  background: #fff;
+}
+
+.dynamic-qr-result img {
+  display: block;
+  width: 100%;
+}
+
+.dynamic-created a,
+.dynamic-code-item a {
+  overflow-wrap: anywhere;
+}
+
+.dynamic-analytics {
+  max-height: 12rem;
+  overflow: auto;
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+  background: var(--panel-soft);
+}
+
+.dynamic-analytics p {
+  margin-block: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.dynamic-status[role='alert'] {
+  color: var(--danger, #b42318);
+}
+
+.dynamic-qr-unavailable {
+  margin-block-start: 1.5rem;
+  padding: 0.75rem;
+  border-inline-start: 3px solid var(--border);
+  color: var(--text-soft);
+}

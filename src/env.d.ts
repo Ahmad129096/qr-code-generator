@@ -7,6 +7,8 @@
 interface ImportMetaEnv {
   /** The public URL of the site, e.g. https://qr.example.com (needed for SEO). */
   readonly VITE_SITE_URL?: string
+  /** Optional dynamic QR API base URL; static codes remain entirely local. */
+  readonly VITE_DYNAMIC_API_URL?: string
   /** Where the "Support this project" link points to (Ko-fi). */
   readonly VITE_KOFI_URL?: string
   /** Where the "Support this project" link points to (Buy Me a Coffee). */

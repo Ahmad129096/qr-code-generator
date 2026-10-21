@@ -8,8 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && tsc -p workers/dynamic/tsconfig.json && vite build",
     "build:browser-package": "vite build --config packages/qr-browser/vite.config.ts && tsc -p packages/qr-browser/tsconfig.types.json",
+    "worker:dev": "wrangler dev --config workers/dynamic/wrangler.toml",
+    "worker:deploy": "wrangler deploy --config workers/dynamic/wrangler.toml",
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -34,6 +36,7 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.2",
     "vite-plugin-pwa": "^2.0.0",
-    "vitest": "^4.1.12"
+    "vitest": "^4.1.12",
+    "wrangler": "^4.151.3"
   }
 }

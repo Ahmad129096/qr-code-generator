@@ -1,0 +1,4 @@
+TURNSTILE_SECRET=replace-with-a-local-test-secret
+WEB_RISK_API_KEY=replace-with-a-Web-Risk-key
+OWNER_TOKEN_PEPPER=replace-with-a-random-value-at-least-32-characters
+COOKIE_SIGNING_SECRET=replace-with-a-different-random-value-at-least-32-characters

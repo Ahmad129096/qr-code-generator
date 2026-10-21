@@ -26,6 +26,7 @@ import './App.css'
 // own views — keep them out of the initial bundle.
 const ScannerPanel = lazy(() => import('./components/ScannerPanel'))
 const BatchPanel = lazy(() => import('./components/BatchPanel'))
+const DynamicQrPanel = lazy(() => import('./components/DynamicQrPanel'))
 
 type View = 'create' | 'scan' | 'batch'
 
@@ -199,6 +200,7 @@ function GeneratorPage({
   onRestore,
 }: GeneratorRouteProps & { slug: string }) {
   const { locale, t } = useLocale()
+  const [showDynamicQr, setShowDynamicQr] = useState(false)
   const navigate = useNavigate()
   const landing = useMemo<LandingPage | undefined>(() => {
     if (slug) return landingForSlug(slug)
@@ -324,6 +326,23 @@ function GeneratorPage({
                 onHistoryEntry={onHistoryEntry}
                 onOptionsChange={onOptionsChange}
               />
+              {activeType.id === 'url' && qrValue.startsWith('http') && (
+                <>
+                  <button
+                    type="button"
+                    className="dynamic-toggle"
+                    aria-expanded={showDynamicQr}
+                    onClick={() => setShowDynamicQr((shown) => !shown)}
+                  >
+                    {showDynamicQr ? t('hideDynamic') : t('openDynamic')}
+                  </button>
+                  {showDynamicQr && (
+                    <Suspense fallback={<p className="history-empty">{t('dynamicTurnstileLoading')}</p>}>
+                      <DynamicQrPanel destination={qrValue} options={options} />
+                    </Suspense>
+                  )}
+                </>
+              )}
             </section>
           </div>
 

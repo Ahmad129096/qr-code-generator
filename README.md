@@ -37,6 +37,14 @@ Restoring a history entry brings back the content type, the field values, and th
 **Share** — “Copy link” creates a URL that recreates the exact code (type, fields, and style) in
 the URL fragment, so nothing is sent to a server. The link warns you when it carries a password.
 
+**Dynamic links (optional, hosted)** — when a site operator configures the separate Cloudflare
+service, URL pages can create short redirect links whose destination can be edited later. This is
+separate from static QR generation: the destination is sent to the selected service only when a
+visitor explicitly creates a dynamic link. Dynamic QR scans use monthly caps, optional password
+and expiry controls, aggregated country/device analytics, DNS-verified custom domains, abuse
+reports, and URL checks through Google Web Risk. See
+[Dynamic QR deployment and privacy](#dynamic-qr-deployment-and-privacy).
+
 **Scan** — decode QR codes with your webcam or by uploading an image (uses `jsqr`).
 
 **Batch** — paste rows or upload a CSV/JSON file and download a ZIP of PNG and/or SVG codes,
@@ -110,7 +118,9 @@ npm run build    # strict typecheck + production build
 - The renderer uses `QRCode.create()` to obtain the raw module `BitMatrix`, so modules, eyes,
   gradients, and logos are drawn with shared geometry — the canvas preview and SVG/PDF/EPS
   exports always match.
-- All processing happens locally; no network calls after the app loads.
+- Static QR content and exports are processed locally. Optional dynamic links are a separate,
+  explicitly hosted feature; the app makes no dynamic-service calls unless `VITE_DYNAMIC_API_URL`
+  is configured and a visitor opens the URL generator panel.
 - TypeScript runs in strict mode; the core in `src/qr/` is covered by vitest suites in
   `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history, share links), and
   the build scripts in `scripts/` have their own suites in `scripts/__tests__/`.
@@ -125,6 +135,119 @@ unknown paths to `index.html` so the router can take over:
 - **Nginx** — `try_files $uri $uri/ /index.html;`
 
 `npm run build` writes a plain static bundle to `dist/`, so any static host works.
+
+### Dynamic QR deployment and privacy
+
+Dynamic QR is **not required** for the app. Without `VITE_DYNAMIC_API_URL`, all existing static
+codes continue to work locally. If enabled, dynamic destinations are stored in a Cloudflare Worker
+and D1 database; they are not covered by the static generator's local-only guarantee.
+
+The Worker uses accountless owner keys: a random 256-bit private key is kept in browser storage and
+is required to list, edit, delete, and view analytics for that owner's links. Export and securely
+back up the key. There is no account recovery; losing the key means the links cannot be managed.
+The key is a bearer credential, so anyone who obtains it can manage the associated links.
+
+Default free policy limits are **5 active links per owner key** and **1,000 scans per link per UTC
+month**. An individual link may set a lower scan cap, expiry, or password. The limit is enforced
+per key (not a verified identity), so it is a product quota, not a guarantee that prevents someone
+from making another owner key. Creation and report submissions require Cloudflare Turnstile;
+per-owner creation, per-link password attempts, and reports are rate-limited.
+
+The redirect service stores only daily aggregate scan counts by country code and broad device
+class. It does not store raw IP addresses, user-agent strings, referrers, cookies for analytics,
+or individual scan records. Analytics aggregates are deleted after 90 days. A short-lived,
+HTTP-only cookie is used only to remember a successful password unlock for 10 minutes. Abuse
+reports retain their optional, length-limited text until resolved and are removed 180 days after
+resolution. Do not include personal information in a report.
+
+Service operators must review open reports via D1 and can temporarily disable a reported link
+while investigating. Reports are not an automatic verdict; URL reputation checks can miss new or
+changed threats, and false positives are possible. Do not describe this feature as guaranteed
+malware protection.
+
+Creating a dynamic link sends its destination to the service operator and to Google Web Risk for a
+threat lookup; Turnstile challenge data is processed by Cloudflare. If URL checks are unavailable,
+creation or destination edits fail closed. Passwords are salted and hashed server-side, but the
+destination itself is not encrypted in D1. A password is a prompt before redirecting, not end-to-end
+encryption or a secrecy guarantee. The implementation uses Web Risk rather than the Google Safe
+Browsing API because Google's Safe Browsing API is restricted to non-commercial use, while this
+project may be monetized.
+
+The service is designed for Cloudflare Workers + D1. The Workers Paid plan currently starts at
+**$5/month per account** and includes 10 million Worker requests/month; additional requests and CPU
+are usage-billed. D1 has included monthly read/write/storage allowances on Paid. Google Web Risk
+Lookup includes 100,000 monthly calls and then lists $0.50 per additional 1,000 calls. Cloudflare
+for SaaS currently includes 100 customer hostnames on non-Enterprise plans and lists $0.10 per
+additional hostname. Actual costs depend on traffic, region, plan, and provider changes. Recheck
+the linked provider pricing before launch:
+
+- [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+- [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/)
+- [Web Risk pricing](https://cloud.google.com/web-risk/pricing)
+- [Safe Browsing API usage restrictions](https://developers.google.com/safe-browsing/v4/usage-limits)
+- [Cloudflare for SaaS hostname plans](https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/plans/)
+- [Turnstile privacy and operation](https://developers.cloudflare.com/turnstile/)
+
+#### Configure and deploy the Worker
+
+The frontend continues to support Node.js 20.19+, but the current Wrangler release used for Worker
+development/deployment requires Node.js 22+. Install Node 22 before running the Worker commands
+below.
+
+1. Create a D1 database and put its ID in `workers/dynamic/wrangler.toml`:
+
+   ```bash
+   npx wrangler d1 create qr-dynamic
+   ```
+
+2. Set `APP_ORIGIN` and `REDIRECT_HOST` in that file, then apply the migration and deploy:
+
+   ```bash
+   npx wrangler d1 migrations apply qr-dynamic --remote --config workers/dynamic/wrangler.toml
+   npm run worker:deploy
+   ```
+
+3. Add Worker secrets (never use `VITE_*` for secrets):
+
+   ```bash
+   npx wrangler secret put TURNSTILE_SECRET --config workers/dynamic/wrangler.toml
+   npx wrangler secret put WEB_RISK_API_KEY --config workers/dynamic/wrangler.toml
+   npx wrangler secret put OWNER_TOKEN_PEPPER --config workers/dynamic/wrangler.toml
+   npx wrangler secret put COOKIE_SIGNING_SECRET --config workers/dynamic/wrangler.toml
+   ```
+
+   Use distinct high-entropy values for the pepper and cookie-signing secret. Configure a Turnstile
+   site key as the public `TURNSTILE_SITE_KEY` Worker variable. Enable the Web Risk Lookup API and
+   use its secret key only in the Worker environment.
+
+4. Attach the API hostname and redirect hostname to the Worker. For a visitor-owned custom domain,
+   first request a verification token in the app, add the requested TXT record, verify it, and
+   configure that hostname with Cloudflare for SaaS to route it to the Worker. Only verified
+   hostnames owned by that owner key can be assigned to a dynamic link.
+
+5. Set the **public** Worker API URL during the frontend build:
+
+   ```bash
+   VITE_DYNAMIC_API_URL=https://api.qr.example.com npm run build
+   ```
+
+The URL is public configuration, not a secret. The Turnstile secret, Web Risk key, owner-key pepper,
+and cookie-signing secret must remain Worker secrets. Run `npm run worker:dev` to test the Worker
+locally; local development still needs configured Turnstile/Web Risk credentials for successful
+link creation.
+
+Custom domains require the domain owner to complete DNS verification and the service operator to
+provision and route the hostname in Cloudflare for SaaS; merely entering a hostname does not make it
+live. The redirect route checks the request host against the verified domain mapping.
+
+For moderation, review open reports:
+
+```bash
+npx wrangler d1 execute qr-dynamic --remote --config workers/dynamic/wrangler.toml --command "SELECT id, slug, reason, details, created_at FROM abuse_reports WHERE status = 'open' ORDER BY created_at"
+```
+
+After review, operators can set `codes.disabled_at` for the matching slug and mark the report
+resolved. Keep report details private and follow a documented response process.
 
 ### SEO and static pages
 
