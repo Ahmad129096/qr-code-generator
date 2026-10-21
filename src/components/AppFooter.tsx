@@ -1,4 +1,4 @@
-import { REPOSITORY_URL, supportTarget } from "../support";
+import { supportTarget } from "../support";
 import { useLocale } from "../localeContext";
 
 /**
