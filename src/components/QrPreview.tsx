@@ -11,16 +11,25 @@ import {
   exportSvg,
 } from '../qr/exporters'
 import type { HistoryEntry } from '../qr/history'
+import { copyText } from '../qr/clipboard'
 import ScanAuditPanel from './ScanAuditPanel'
 
 interface Props {
   value: string
   options: QrOptions
   emptyHint: string
+  /** Content type id, stored with the history entry so it can be restored. */
+  typeId?: string
+  /** Field values, stored with the history entry so they can be restored. */
+  formData?: Record<string, string | boolean>
   /** Called (debounced) when a stable value+style has rendered, for history. */
   onHistoryEntry?: (entry: HistoryEntry) => void
   /** Called when the user accepts an error-correction suggestion. */
   onOptionsChange?: (options: QrOptions) => void
+  /** Absolute link that recreates the current code. */
+  shareUrl?: string
+  /** Shown under the copy-link button when the link carries a secret. */
+  shareWarning?: string
 }
 
 const PNG_SCALES = [1, 2, 4, 8]
@@ -29,8 +38,12 @@ export default function QrPreview({
   value,
   options,
   emptyHint,
+  typeId,
+  formData,
   onHistoryEntry,
   onOptionsChange,
+  shareUrl,
+  shareWarning,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [assets, setAssets] = useState<RenderAssets>({})
@@ -80,6 +93,12 @@ export default function QrPreview({
   useEffect(() => {
     historyRef.current = onHistoryEntry
   }, [onHistoryEntry])
+  const typeRef = useRef(typeId)
+  const formDataRef = useRef(formData)
+  useEffect(() => {
+    typeRef.current = typeId
+    formDataRef.current = formData
+  }, [typeId, formData])
   useEffect(() => {
     if (!model || !historyRef.current) return
     const t = setTimeout(() => {
@@ -89,6 +108,8 @@ export default function QrPreview({
         cb({
           id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
           value,
+          typeId: typeRef.current,
+          formData: formDataRef.current,
           options,
           thumb,
           at: Date.now(),
@@ -224,6 +245,30 @@ export default function QrPreview({
             {busy === 'copy' ? 'Copying…' : 'Copy image'}
           </button>
         </div>
+        {shareUrl && (
+          <div className="export-row">
+            <button
+              type="button"
+              disabled={disabled || busy !== null}
+              title="Copy a link that recreates this code (images are not included)"
+              onClick={() =>
+                void run('link', async () => {
+                  const ok = await copyText(shareUrl)
+                  if (ok) {
+                    // Keep the address bar in sync so the link can be shared from there.
+                    window.history.replaceState(null, '', shareUrl)
+                    setNote('Link copied to clipboard.')
+                  } else {
+                    setNote('Could not copy the link. Copy it from the address bar.')
+                  }
+                })
+              }
+            >
+              {busy === 'link' ? 'Copying…' : 'Copy link'}
+            </button>
+          </div>
+        )}
+        {shareUrl && shareWarning && <p className="qr-note">{shareWarning}</p>}
       </div>
     </div>
   )

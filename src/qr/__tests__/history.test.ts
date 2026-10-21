@@ -90,6 +90,43 @@ describe('history', () => {
     localStorage.setItem('qrg.history.v1', '{not json')
     expect(loadHistory()).toEqual([])
   })
+
+  it('keeps the content type and fields of an entry', () => {
+    pushHistory(entry('WIFI:S:Net;', { typeId: 'wifi', formData: { ssid: 'Net' } }))
+    const [first] = loadHistory()
+    expect(first?.typeId).toBe('wifi')
+    expect(first?.formData).toEqual({ ssid: 'Net' })
+  })
+
+  it('de-duplicates by type as well as value and style', () => {
+    pushHistory(entry('same', { typeId: 'url' }))
+    pushHistory(entry('same', { typeId: 'wifi' }))
+    expect(loadHistory()).toHaveLength(2)
+  })
+
+  it('restores legacy entries that have no type or fields', () => {
+    localStorage.setItem(
+      'qrg.history.v1',
+      JSON.stringify([{ id: 'a', value: 'legacy', options: { fgColor: '#123456' }, thumb: '', at: 1 }]),
+    )
+    const [first] = loadHistory()
+    expect(first?.value).toBe('legacy')
+    expect(first?.typeId).toBeUndefined()
+    expect(first?.formData).toBeUndefined()
+    // Missing options fall back to the defaults.
+    expect(first?.options.fgColor).toBe('#123456')
+    expect(first?.options.moduleShape).toBe('square')
+  })
+
+  it('drops malformed entries', () => {
+    localStorage.setItem(
+      'qrg.history.v1',
+      JSON.stringify([{ id: 'a' }, 'nope', null, { id: 'b', value: 'ok', options: {} }]),
+    )
+    const list = loadHistory()
+    expect(list).toHaveLength(1)
+    expect(list[0]?.value).toBe('ok')
+  })
 })
 
 describe('styleSignature', () => {

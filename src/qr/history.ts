@@ -1,4 +1,4 @@
-import type { QrOptions } from './options'
+import { sanitizeOptions, type QrOptions } from './options'
 
 const HISTORY_KEY = 'qrg.history.v1'
 const SAVED_KEY = 'qrg.saved.v1'
@@ -7,6 +7,14 @@ const MAX_HISTORY = 20
 export interface HistoryEntry {
   id: string
   value: string
+  /**
+   * Content type id (e.g. 'wifi'). Older entries saved before this field
+   * existed have no type — they can still be restored, but only with their
+   * style, not their fields.
+   */
+  typeId?: string
+  /** Field values for the content type, so a restore brings back the content. */
+  formData?: Record<string, string | boolean>
   options: QrOptions
   /** dataURL PNG thumbnail. */
   thumb: string
@@ -45,14 +53,51 @@ function write(key: string, value: unknown): void {
 }
 
 export function loadHistory(): HistoryEntry[] {
-  const list = read<HistoryEntry[]>(HISTORY_KEY)
-  return Array.isArray(list) ? list : []
+  const list = read<unknown>(HISTORY_KEY)
+  if (!Array.isArray(list)) return []
+  return list.map(normalizeEntry).filter((e): e is HistoryEntry => e !== null)
 }
 
-/** Push to the front of history, de-duplicating by value+style signature. */
+/**
+ * Coerce a stored entry into a valid shape. Entries saved by older versions
+ * (no typeId/formData) are kept — they simply restore style only.
+ */
+function normalizeEntry(raw: unknown): HistoryEntry | null {
+  if (typeof raw !== 'object' || raw === null) return null
+  const e = raw as Partial<HistoryEntry>
+  if (typeof e.value !== 'string') return null
+  const formData = sanitizeFormData(e.formData)
+  return {
+    id: typeof e.id === 'string' && e.id ? e.id : uid(),
+    value: e.value,
+    typeId: typeof e.typeId === 'string' && e.typeId ? e.typeId : undefined,
+    formData: formData && Object.keys(formData).length > 0 ? formData : undefined,
+    options: sanitizeOptions(e.options),
+    thumb: typeof e.thumb === 'string' ? e.thumb : '',
+    at: typeof e.at === 'number' && Number.isFinite(e.at) ? e.at : Date.now(),
+  }
+}
+
+function sanitizeFormData(raw: unknown): Record<string, string | boolean> {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return {}
+  const out: Record<string, string | boolean> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === 'boolean' || typeof value === 'string') out[key] = value
+  }
+  return out
+}
+
+/**
+ * Push to the front of history, de-duplicating by value+type+style signature.
+ */
 export function pushHistory(entry: HistoryEntry): HistoryEntry[] {
   const list = loadHistory().filter(
-    (e) => !(e.value === entry.value && sameStyle(e.options, entry.options)),
+    (e) =>
+      !(
+        e.value === entry.value &&
+        e.typeId === entry.typeId &&
+        sameStyle(e.options, entry.options)
+      ),
   )
   list.unshift(entry)
   const trimmed = list.slice(0, MAX_HISTORY)

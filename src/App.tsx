@@ -6,6 +6,7 @@ import OptionsPanel from './components/OptionsPanel'
 import HistoryPanel from './components/HistoryPanel'
 import { defaultOptions, type QrOptions } from './qr/options'
 import { loadHistory, pushHistory, type HistoryEntry } from './qr/history'
+import { buildShareUrl, decodeShareState } from './qr/share'
 import './App.css'
 
 // The scanner (jsqr) and batch (jszip) toolchains are only needed on their
@@ -15,17 +16,34 @@ const BatchPanel = lazy(() => import('./components/BatchPanel'))
 
 type View = 'create' | 'scan' | 'batch'
 
+/**
+ * A link like /wifi-qr-code-generator#s=… carries the whole setup — read it
+ * once, before the first render, so the app opens in the shared state.
+ */
+const sharedState = (() => {
+  if (typeof window === 'undefined') return null
+  const state = decodeShareState(window.location.hash)
+  if (!state) return null
+  return QR_TYPES.some((t) => t.id === state.typeId) ? state : null
+})()
+
 export default function App() {
   const [view, setView] = useState<View>('create')
-  const [activeTypeId, setActiveTypeId] = useState(FIRST_TYPE.id)
+  const [activeTypeId, setActiveTypeId] = useState(() => sharedState?.typeId ?? FIRST_TYPE.id)
   const [formDataByType, setFormDataByType] = useState<
     Record<string, Record<string, string | boolean>>
   >(() => {
     const initial: Record<string, Record<string, string | boolean>> = {}
     for (const type of QR_TYPES) initial[type.id] = defaultFormData(type)
+    if (sharedState) {
+      const type = QR_TYPES.find((t) => t.id === sharedState.typeId)
+      if (type) initial[type.id] = { ...defaultFormData(type), ...sharedState.formData }
+    }
     return initial
   })
-  const [options, setOptions] = useState<QrOptions>(defaultOptions)
+  const [options, setOptions] = useState<QrOptions>(
+    () => sharedState?.options ?? defaultOptions(),
+  )
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory())
 
   const activeType = useMemo(
@@ -56,8 +74,43 @@ export default function App() {
 
   const restoreEntry = useCallback((entry: HistoryEntry) => {
     setOptions(entry.options)
+    // Newer entries carry the content type and its fields, so a restore brings
+    // back the code itself — not just its style.
+    const type = entry.typeId ? QR_TYPES.find((t) => t.id === entry.typeId) : undefined
+    if (type) {
+      setActiveTypeId(type.id)
+      if (entry.formData) {
+        setFormDataByType((prev) => ({
+          ...prev,
+          [type.id]: { ...defaultFormData(type), ...entry.formData },
+        }))
+      }
+    }
     setView('create')
   }, [])
+
+  // A link like /wifi-qr-code-generator#s=… carries the whole setup — it is
+  // applied when the app boots (see `sharedState` above).
+
+  const shareUrl = useMemo(() => {
+    const base = window.location.href.split('#')[0] ?? window.location.href
+    return buildShareUrl(base, {
+      typeId: activeType.id,
+      formData: activeData,
+      options,
+    })
+  }, [activeType.id, activeData, options])
+
+  // A link carries the field values, so warn when one of them is a secret.
+  const shareWarning = useMemo(() => {
+    const secret = activeType.fields.find((field) => {
+      if (field.type !== 'password') return false
+      const value = activeData[field.key]
+      return typeof value === 'string' && value.trim() !== ''
+    })
+    if (!secret) return undefined
+    return `This link includes the ${secret.label.toLowerCase()} — anyone with the link can read it.`
+  }, [activeType, activeData])
 
   return (
     <div className="app">
@@ -144,6 +197,10 @@ export default function App() {
                 value={qrValue}
                 options={options}
                 emptyHint={activeType.emptyHint}
+                typeId={activeType.id}
+                formData={activeData}
+                shareUrl={shareUrl}
+                shareWarning={shareWarning}
                 onHistoryEntry={handleHistoryEntry}
                 onOptionsChange={setOptions}
               />

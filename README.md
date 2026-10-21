@@ -6,7 +6,8 @@ all in your browser (nothing is uploaded anywhere).
 
 ## Features
 
-**Content types** — Text, URL, Wi-Fi, Email, SMS, Phone, WhatsApp, vCard contact, and Calendar event.
+**Content types** — Text, URL, Wi-Fi, Email, SMS, Phone, WhatsApp, vCard contact, Location
+(`geo:`), App Store (iOS/Android auto-detect), Social profiles, and Calendar event.
 
 **Styling**
 
@@ -26,6 +27,10 @@ all in your browser (nothing is uploaded anywhere).
 - Copy image straight to the clipboard.
 
 **History & presets** — recent codes and saved styles persist in `localStorage` (browser-local only).
+Restoring a history entry brings back the content type, the field values, and the style.
+
+**Share** — “Copy link” creates a URL that recreates the exact code (type, fields, and style) in
+the URL fragment, so nothing is sent to a server. The link warns you when it carries a password.
 
 **Scan** — decode QR codes with your webcam or by uploading an image (uses `jsqr`).
 
@@ -54,14 +59,15 @@ npm run build    # strict typecheck + production build
 
 - `src/qr/` — framework-free core: `options.ts` (types + presets), `geometry.ts` (shared shape
   polygons/path data), `render.ts` (canvas + SVG rendering from the raw module matrix),
-  `exporters.ts` (PNG/SVG/PDF/EPS/clipboard), `history.ts` (localStorage),
-  `batch.ts` (CSV/JSON parsing + ZIP), `decode.ts` (image/webcam decoding), `images.ts`.
+  `exporters.ts` (PNG/SVG/PDF/EPS/clipboard), `history.ts` (localStorage), `share.ts` (URL-fragment
+  share links), `clipboard.ts`, `batch.ts` (CSV/JSON parsing + ZIP), `decode.ts` (image/webcam
+  decoding), `images.ts`.
 - The renderer uses `QRCode.create()` to obtain the raw module `BitMatrix`, so modules, eyes,
   gradients, and logos are drawn with shared geometry — the canvas preview and SVG/PDF/EPS
   exports always match.
 - All processing happens locally; no network calls after the app loads.
 - TypeScript runs in strict mode; the core in `src/qr/` is covered by vitest suites in
-  `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history).
+  `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history, share links).
 
 ## Contributing & license
 

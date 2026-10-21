@@ -59,6 +59,30 @@ export const defaultOptions = (): QrOptions => ({
   printMarginMm: 8,
 })
 
+/**
+ * Merge a (possibly partial or untrusted) option bag over the defaults.
+ * Unknown keys are dropped and values with the wrong type fall back.
+ */
+export function sanitizeOptions(raw: unknown): QrOptions {
+  const defaults = defaultOptions()
+  const out = { ...defaults }
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return out
+  const source = raw as Record<string, unknown>
+  for (const key of Object.keys(defaults) as (keyof QrOptions)[]) {
+    const value = source[key]
+    if (value === undefined || value === null) continue
+    const fallback = defaults[key]
+    if (typeof fallback === 'number' && typeof value === 'number' && Number.isFinite(value)) {
+      out[key] = value as never
+    } else if (typeof fallback === 'string' && typeof value === 'string') {
+      out[key] = value as never
+    } else if (typeof fallback === 'boolean' && typeof value === 'boolean') {
+      out[key] = value as never
+    }
+  }
+  return out
+}
+
 export interface StylePreset {
   id: string
   name: string
