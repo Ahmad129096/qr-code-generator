@@ -140,6 +140,7 @@ describe('styleSignature', () => {
     const a = defaultOptions()
     expect(styleSignature(a)).not.toBe(styleSignature({ ...a, fgColor: '#123456' }))
     expect(styleSignature(a)).not.toBe(styleSignature({ ...a, moduleShape: 'dot' }))
+    expect(styleSignature(a)).not.toBe(styleSignature({ ...a, logoFit: 'cover' }))
     expect(styleSignature(a)).not.toBe(styleSignature({ ...a, margin: 0 }))
     expect(styleSignature(a)).not.toBe(styleSignature({ ...a, frameText: 'SCAN NOW' }))
   })

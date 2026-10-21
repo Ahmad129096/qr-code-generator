@@ -312,18 +312,35 @@ export function renderToCanvas(
     }
     if (assets.logo) {
       const img = assets.logo
-      const scale = Math.min(logo.box / img.naturalWidth, logo.box / img.naturalHeight)
-      const w = img.naturalWidth * scale
-      const h = img.naturalHeight * scale
-      const dx = logo.x + (logo.box - w) / 2
-      const dy = logo.y + (logo.box - h) / 2
       ctx.save()
       ctx.clip(
         new Path2D(
           pathD(shapePoly(options.logoShape, logo.x, logo.y, logo.box, logo.box)),
         ),
       )
-      ctx.drawImage(img, dx, dy, w, h)
+      if (options.logoFit === 'cover') {
+        const cropSize = Math.min(img.naturalWidth, img.naturalHeight)
+        const sx = (img.naturalWidth - cropSize) / 2
+        const sy = (img.naturalHeight - cropSize) / 2
+        ctx.drawImage(
+          img,
+          sx,
+          sy,
+          cropSize,
+          cropSize,
+          logo.x,
+          logo.y,
+          logo.box,
+          logo.box,
+        )
+      } else {
+        const scale = Math.min(logo.box / img.naturalWidth, logo.box / img.naturalHeight)
+        const w = img.naturalWidth * scale
+        const h = img.naturalHeight * scale
+        const dx = logo.x + (logo.box - w) / 2
+        const dy = logo.y + (logo.box - h) / 2
+        ctx.drawImage(img, dx, dy, w, h)
+      }
       ctx.restore()
     }
   }
@@ -400,7 +417,7 @@ export function buildSvg(model: QrModel, rawOptions: QrOptions, pixelSize: numbe
     )
     parts.push(`<clipPath id="lgc"><path d="${clipShape}"/></clipPath>`)
     parts.push(
-      `<image href="${escapeXmlAttribute(sanitizeImageDataUrl(options.logo) ?? '')}" x="${logo.x.toFixed(2)}" y="${logo.y.toFixed(2)}" width="${logo.box.toFixed(2)}" height="${logo.box.toFixed(2)}" preserveAspectRatio="xMidYMid meet" clip-path="url(#lgc)"/>`,
+      `<image href="${escapeXmlAttribute(sanitizeImageDataUrl(options.logo) ?? '')}" x="${logo.x.toFixed(2)}" y="${logo.y.toFixed(2)}" width="${logo.box.toFixed(2)}" height="${logo.box.toFixed(2)}" preserveAspectRatio="xMidYMid ${options.logoFit === 'cover' ? 'slice' : 'meet'}" clip-path="url(#lgc)"/>`,
     )
   }
 

@@ -365,6 +365,54 @@ export default function OptionsPanel({ options, onChange }: Props) {
           </div>
           {options.logo && (
             <>
+              <div className="logo-size-control">
+                <div className="logo-size-preview" aria-hidden="true">
+                  <img
+                    src={options.logo}
+                    alt=""
+                    style={{
+                      width: `${Math.round(options.logoSize * 100)}%`,
+                      height: `${Math.round(options.logoSize * 100)}%`,
+                      objectFit: options.logoFit,
+                    }}
+                  />
+                </div>
+                <div className="logo-size-content">
+                  <div className="logo-size-heading">
+                    <label className="field-label" htmlFor="logo-size">
+                      {localizeTerm(locale, 'Logo size')}
+                    </label>
+                    <output htmlFor="logo-size">{Math.round(options.logoSize * 100)}%</output>
+                  </div>
+                  <input
+                    id="logo-size"
+                    className="logo-size-range"
+                    type="range"
+                    min={0.1}
+                    max={0.4}
+                    step={0.01}
+                    value={options.logoSize}
+                    aria-valuetext={`${Math.round(options.logoSize * 100)}%`}
+                    onChange={(e) => patch({ logoSize: Number(e.target.value) })}
+                  />
+                  <div className="logo-size-scale" aria-hidden="true">
+                    <span>10%</span>
+                    <span>40%</span>
+                  </div>
+                </div>
+              </div>
+              <label className="field">
+                <span className="field-label">{localizeTerm(locale, 'Logo image fit')}</span>
+                <select
+                  value={options.logoFit}
+                  onChange={(e) =>
+                    patch({ logoFit: e.target.value as QrOptions['logoFit'] })
+                  }
+                >
+                  <option value="contain">{localizeTerm(locale, 'Fit whole image')}</option>
+                  <option value="cover">{localizeTerm(locale, 'Crop to fill')}</option>
+                </select>
+              </label>
               <label className="field">
                 <span className="field-label">{localizeTerm(locale, 'Logo shape')}</span>
                 <select
@@ -375,17 +423,6 @@ export default function OptionsPanel({ options, onChange }: Props) {
                   <option value="rounded">{localizeTerm(locale, 'Rounded')}</option>
                   <option value="circle">{localizeTerm(locale, 'Circle')}</option>
                 </select>
-              </label>
-              <label className="field">
-                <span className="field-label">Size: {Math.round(options.logoSize * 100)}%</span>
-                <input
-                  type="range"
-                  min={0.1}
-                  max={0.4}
-                  step={0.01}
-                  value={options.logoSize}
-                  onChange={(e) => patch({ logoSize: Number(e.target.value) })}
-                />
               </label>
               <label className="field field-checkbox">
                 <input

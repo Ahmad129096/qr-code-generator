@@ -158,6 +158,7 @@ export function styleSignature(o: QrOptions): string {
     o.eyePupilShape,
     o.logo ?? '',
     o.logoSize,
+    o.logoFit,
     o.logoShape,
     o.logoPlate ? 1 : 0,
     o.frameText,

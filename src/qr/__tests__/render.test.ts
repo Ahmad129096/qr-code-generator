@@ -25,6 +25,18 @@ describe('buildSvg', () => {
     const svg = buildSvg(createModel('safe payload', 'M'), options, 256)
 
     expect(svg).toContain('href="data:image/png;base64,AA=="')
+    expect(svg).toContain('preserveAspectRatio="xMidYMid meet"')
+  })
+
+  it('center-crops a logo to fill its box when requested', () => {
+    const options = {
+      ...defaultOptions(),
+      logo: 'data:image/png;base64,AA==',
+      logoFit: 'cover' as const,
+    }
+    const svg = buildSvg(createModel('safe payload', 'M'), options, 256)
+
+    expect(svg).toContain('preserveAspectRatio="xMidYMid slice"')
   })
 
   it('renders and escapes the call-to-action frame in SVG output', () => {

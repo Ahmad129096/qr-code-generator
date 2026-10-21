@@ -8,6 +8,7 @@ describe('sanitizeOptions', () => {
       margin: 4,
       gradientAngle: 360,
       logoSize: 0.4,
+      logoFit: 'cover',
       printSizeMm: 120,
       printMarginMm: 20,
       moduleShape: 'heart',
@@ -17,6 +18,7 @@ describe('sanitizeOptions', () => {
     expect(result.margin).toBe(4)
     expect(result.gradientAngle).toBe(360)
     expect(result.logoSize).toBe(0.4)
+    expect(result.logoFit).toBe('cover')
     expect(result.printSizeMm).toBe(120)
     expect(result.printMarginMm).toBe(20)
     expect(result.moduleShape).toBe('heart')
@@ -32,6 +34,7 @@ describe('sanitizeOptions', () => {
       fgColor: 'url(javascript:alert(1))',
       moduleShape: 'script',
       errorCorrectionLevel: 'X',
+      logoFit: 'crop',
     })
     expect(result.size).toBe(defaults.size)
     expect(result.margin).toBe(defaults.margin)
@@ -39,6 +42,7 @@ describe('sanitizeOptions', () => {
     expect(result.fgColor).toBe(defaults.fgColor)
     expect(result.moduleShape).toBe(defaults.moduleShape)
     expect(result.errorCorrectionLevel).toBe(defaults.errorCorrectionLevel)
+    expect(result.logoFit).toBe(defaults.logoFit)
   })
 
   it('only accepts bounded local image data URLs', () => {

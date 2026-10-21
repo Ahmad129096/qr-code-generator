@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { LOCALES, LOCALE_NAMES, type Locale } from '../locale'
+import { LOCALES, LOCALE_NAMES } from '../locale'
 import { useLocale } from '../localeContext'
 
 export default function LocaleSwitcher() {

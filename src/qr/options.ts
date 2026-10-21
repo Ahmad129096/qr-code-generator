@@ -3,6 +3,7 @@ export type ModuleShape = 'square' | 'rounded' | 'dot' | 'diamond' | 'leaf' | 's
 export type EyeFrameShape = 'square' | 'rounded' | 'circle' | 'leaf' | 'heart'
 export type EyePupilShape = 'square' | 'rounded' | 'circle' | 'diamond' | 'heart'
 export type LogoShape = 'square' | 'rounded' | 'circle'
+export type LogoFit = 'contain' | 'cover'
 export type BackgroundMode = 'color' | 'transparent' | 'image'
 export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H'
 export type PdfPrintPreset = 'sheet' | 'business-card' | 'a4-poster' | 'table-tent'
@@ -46,6 +47,8 @@ export interface QrOptions {
   logo: string | null
   /** Logo box as a fraction of the full code size (0.1 – 0.4). */
   logoSize: number
+  /** Preserve the full logo or center-crop it to fill the logo box. */
+  logoFit: LogoFit
   logoShape: LogoShape
   /** Draw a plate behind the logo so it stays scannable. */
   logoPlate: boolean
@@ -77,6 +80,7 @@ export const defaultOptions = (): QrOptions => ({
   eyePupilShape: 'square',
   logo: null,
   logoSize: 0.22,
+  logoFit: 'contain',
   logoShape: 'rounded',
   logoPlate: true,
   frameText: '',
@@ -92,6 +96,7 @@ const MODULE_SHAPES = ['square', 'rounded', 'dot', 'diamond', 'leaf', 'star', 'h
 const EYE_FRAME_SHAPES = ['square', 'rounded', 'circle', 'leaf', 'heart'] as const
 const EYE_PUPIL_SHAPES = ['square', 'rounded', 'circle', 'diamond', 'heart'] as const
 const LOGO_SHAPES = ['square', 'rounded', 'circle'] as const
+const LOGO_FITS = ['contain', 'cover'] as const
 const BACKGROUND_MODES = ['color', 'transparent', 'image'] as const
 const ERROR_CORRECTION_LEVELS = ['L', 'M', 'Q', 'H'] as const
 const PRINT_PRESETS = ['sheet', 'business-card', 'a4-poster', 'table-tent'] as const
@@ -162,6 +167,7 @@ export function sanitizeOptions(raw: unknown): QrOptions {
       : defaults.eyePupilShape,
     logo: source['logo'] === null ? null : sanitizeImageDataUrl(source['logo']),
     logoSize: boundedNumber(source['logoSize'], 0.1, 0.4, defaults.logoSize),
+    logoFit: isOneOf(source['logoFit'], LOGO_FITS) ? source['logoFit'] : defaults.logoFit,
     logoShape: isOneOf(source['logoShape'], LOGO_SHAPES) ? source['logoShape'] : defaults.logoShape,
     logoPlate:
       typeof source['logoPlate'] === 'boolean' ? source['logoPlate'] : defaults.logoPlate,
