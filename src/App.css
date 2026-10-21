@@ -94,13 +94,19 @@ button {
   border-bottom: 1px solid var(--border-soft);
 }
 
-.app-header h1 {
+.app-header .brand {
   margin: 0;
   font-size: 27px;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.app-header h1::before {
+.app-header .brand a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.app-header .brand a::before {
   content: '';
   display: inline-block;
   width: 12px;
@@ -114,6 +120,69 @@ button {
 .app-header p {
   margin: 0;
   color: var(--text-soft);
+  font-size: 14px;
+}
+
+/* ---- Landing hero (SEO headline block) ---- */
+.landing-hero {
+  margin-bottom: 22px;
+  padding: 22px 24px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--bg-accent) 190%);
+  box-shadow: var(--shadow);
+}
+
+.landing-hero h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.landing-sub {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--text-soft);
+  font-size: 15px;
+}
+
+.landing-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-points li {
+  position: relative;
+  padding-left: 20px;
+  color: var(--text-soft);
+  font-size: 13.5px;
+}
+
+.landing-points li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--ok);
+  font-weight: 700;
+}
+
+/* ---- 404 ---- */
+.not-found h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.not-found p {
+  color: var(--text-soft);
+}
+
+.not-found-home {
+  margin-top: 18px;
   font-size: 14px;
 }
 
@@ -175,6 +244,7 @@ button {
   color: var(--text-soft);
   cursor: pointer;
   font-size: 13.5px;
+  text-decoration: none;
   transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.1s;
 }
 

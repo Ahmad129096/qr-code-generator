@@ -37,6 +37,10 @@ the URL fragment, so nothing is sent to a server. The link warns you when it car
 **Batch** — paste rows or upload a CSV/JSON file and download a ZIP of PNG and/or SVG codes,
 styled with your current settings (uses `jszip`).
 
+**Pages** — every content type has its own landing page and URL, for example
+`/wifi-qr-code-generator`, `/vcard-qr-code-generator` or `/event-qr-code-generator`. The URLs
+are real links, so they can be shared, bookmarked and indexed.
+
 ## Getting started
 
 Requirements: **Node.js ≥ 20.19** (Vite 8).
@@ -57,6 +61,8 @@ npm run build    # strict typecheck + production build
 
 ## Architecture notes
 
+- `src/landing.ts` — the landing pages: one per content type, with its slug, SEO title,
+  description and copy. The router and the build step both read from this table.
 - `src/qr/` — framework-free core: `options.ts` (types + presets), `geometry.ts` (shared shape
   polygons/path data), `render.ts` (canvas + SVG rendering from the raw module matrix),
   `exporters.ts` (PNG/SVG/PDF/EPS/clipboard), `history.ts` (localStorage), `share.ts` (URL-fragment
@@ -68,6 +74,17 @@ npm run build    # strict typecheck + production build
 - All processing happens locally; no network calls after the app loads.
 - TypeScript runs in strict mode; the core in `src/qr/` is covered by vitest suites in
   `src/qr/__tests__/` (payload encoders, CSV/JSON parsing, geometry, history, share links).
+
+## Deployment
+
+The app is a single-page app with pretty URLs (`/wifi-qr-code-generator`). The host must rewrite
+unknown paths to `index.html` so the router can take over:
+
+- **Vercel** — `vercel.json` already contains the rewrite; just deploy the repository.
+- **Netlify** — add `/* /index.html 200` to `_redirects`.
+- **Nginx** — `try_files $uri $uri/ /index.html;`
+
+`npm run build` writes a plain static bundle to `dist/`, so any static host works.
 
 ## Contributing & license
 
