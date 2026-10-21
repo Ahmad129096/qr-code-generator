@@ -43,6 +43,10 @@ are real links, so they can be shared, bookmarked and indexed. Each page is also
 static HTML file with its own title, description and structured data (see
 [SEO and static pages](#seo-and-static-pages)).
 
+**Installable app** — the site is a PWA: it can be installed on the home screen (Android, Chrome,
+Edge) and works completely offline once installed (see
+[Progressive web app](#progressive-web-app-pwa)).
+
 ## Getting started
 
 Requirements: **Node.js ≥ 20.19** (Vite 8).
@@ -67,6 +71,8 @@ npm run build    # strict typecheck + production build
   description and copy. The router and the build step both read from this table.
 - `src/seo.ts` — keeps `document.title`, the description and the Open Graph tags in sync with
   the page during client-side navigation (the static build ships the tags for direct visits).
+- `src/pwa.ts` — the web app manifest and the rules for the PWA notices; `src/components/PwaNotices.tsx`
+  renders them. The Vite config reads the same manifest, so the app and the build never drift apart.
 - `scripts/` — build-time only: the static HTML/sitemap/robots generator and the PNG writer for
   the icons and the Open Graph image.
 - `src/qr/` — framework-free core: `options.ts` (types + presets), `geometry.ts` (shared shape
@@ -116,6 +122,31 @@ dependency-free PNG writer (icons + Open Graph image) is in `scripts/images.ts`.
 > **Note:** unknown URLs are rewritten to `index.html` and answered with `200` while the app shows
 > its own “page not found” view. On a host that can return a real `404`, prefer serving a
 > `404.html` for unmatched paths.
+
+## Progressive web app (PWA)
+
+The build produces an installable, offline-capable app:
+
+- `dist/manifest.webmanifest` — name, icons (192, 512 and a maskable one), theme colour and
+  `display: standalone`. The data lives in `src/pwa.ts` so the build and the app share it.
+- `dist/sw.js` — a Workbox service worker that precaches the whole app (HTML, JS, CSS, icons,
+  sitemap), so every page also works without a network connection.
+- The app shows small notices at the bottom of the screen: *a new version is ready* (with a
+  **Reload** button), *you are offline*, *ready to work offline* and *install the app*.
+
+How the update flow works: a new build installs its service worker in the background. The app
+then asks the visitor to reload — nothing is swapped out mid-session. On iOS (which has no
+install prompt) the app shows the manual steps instead: *Share → Add to Home Screen*.
+
+For the host:
+
+- serve `sw.js` with `Cache-Control: no-cache` and `Service-Worker-Allowed: /` so updates are
+  picked up (`vercel.json` already sets both),
+- serve the site over HTTPS (or `localhost`) — browsers only allow service workers in a secure
+  context.
+
+The service worker is only generated for production builds (`npm run build`); `npm run dev` runs
+without it so the dev server stays free of caching surprises.
 
 ## Contributing & license
 

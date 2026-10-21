@@ -12,6 +12,7 @@ import {
 } from '../qr/exporters'
 import type { HistoryEntry } from '../qr/history'
 import { copyText } from '../qr/clipboard'
+import { readableTextColor } from '../qr/audit'
 import ScanAuditPanel from './ScanAuditPanel'
 
 interface Props {
@@ -132,6 +133,14 @@ export default function QrPreview({
 
   const disabled = !model || !!error
 
+  // The empty hint sits on the background the user picked — keep it readable.
+  const hintColor = useMemo(() => {
+    if (options.bgMode === 'color') return readableTextColor(options.bgColor)
+    // A checkerboard or an image background: dark text works on the
+    // checkerboard, white text on a photo is the safer bet.
+    return options.bgMode === 'transparent' ? '#4a4e57' : '#ffffff'
+  }, [options.bgMode, options.bgColor])
+
   return (
     <div className="qr-preview">
       <div
@@ -148,7 +157,7 @@ export default function QrPreview({
         {value && model ? (
           <canvas ref={canvasRef} />
         ) : (
-          <p className="qr-empty-hint">
+          <p className="qr-empty-hint" style={{ color: hintColor }}>
             <svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm10-2h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z" />
             </svg>

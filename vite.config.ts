@@ -2,7 +2,9 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 import { LANDING_PAGES } from './src/landing.ts'
+import { MANIFEST } from './src/pwa.ts'
 import { buildIcon, buildOgImage } from './scripts/images.ts'
 import { writeStaticPages } from './scripts/static-pages.ts'
 
@@ -51,10 +53,38 @@ function staticSite(env: Record<string, string>): Plugin {
   }
 }
 
+/**
+ * The installable app: a web app manifest, a service worker that precaches
+ * the whole app (so it works offline) and a prompt for new versions.
+ *
+ * The plugin runs in the "post" phase, so the static pages and the icons
+ * written by the plugin above already exist when Workbox builds the
+ * precache list.
+ */
+const pwa = VitePWA({
+  registerType: 'prompt',
+  injectRegister: 'auto',
+  manifest: MANIFEST,
+  workbox: {
+    // Everything the app needs to run offline.
+    globPatterns: [
+      '**/*.{js,css,html,png,svg,ico,webp,woff,woff2,txt,xml,json}',
+    ],
+    // Any URL falls back to the app shell; the router picks the right page.
+    navigateFallback: '/index.html',
+    cleanupOutdatedCaches: true,
+    clientsClaim: true,
+    maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+  },
+  devOptions: {
+    enabled: false,
+  },
+})
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
   return {
-    plugins: [react(), staticSite(env)],
+    plugins: [react(), staticSite(env), pwa],
   }
 })

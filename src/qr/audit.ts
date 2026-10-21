@@ -91,6 +91,26 @@ function foregroundColors(o: QrOptions): string[] {
 }
 
 /**
+ * Pick the most readable of the candidate text colors for a background. Used
+ * where text sits on a background the user chose (the QR background color).
+ */
+export function readableTextColor(
+  background: string,
+  candidates: string[] = ['#4a4e57', '#f2f3f5', '#111318'],
+): string {
+  let best = candidates[0] ?? '#4a4e57'
+  let bestRatio = -1
+  for (const candidate of candidates) {
+    const ratio = contrastRatio(background, candidate)
+    if (ratio > bestRatio) {
+      bestRatio = ratio
+      best = candidate
+    }
+  }
+  return best
+}
+
+/**
  * Worst-case foreground/background contrast. Returns null when the effective
  * background is not a known solid color (transparent or image).
  */

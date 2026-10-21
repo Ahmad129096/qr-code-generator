@@ -10,11 +10,15 @@
   --panel-soft: #fafafb;
   --text: #16181d;
   --text-soft: #5b5f66;
-  --text-mute: #8a8f98;
+  --text-mute: #6a6f78;
   --border: #d7d9dd;
   --border-soft: #e6e8ec;
   --accent: #4c4fe0;
   --accent-strong: #3d40c4;
+  /* Filled accent surfaces always carry white text, so they keep a color
+     that stays readable in both themes. */
+  --accent-solid: #4c4fe0;
+  --accent-solid-strong: #3d40c4;
   --accent-soft: #eeeefc;
   --accent-contrast: #ffffff;
   --danger: #d64545;
@@ -37,11 +41,15 @@
     --panel-soft: #1f232c;
     --text: #e9ebef;
     --text-soft: #aab0bb;
-    --text-mute: #7d838f;
+    --text-mute: #8b91a0;
     --border: #2d323c;
     --border-soft: #262b34;
     --accent: #7d80f4;
     --accent-strong: #9497ff;
+    /* The bright dark-mode accent is too light for white text — filled
+       surfaces keep the deeper brand color instead. */
+    --accent-solid: #4c4fe0;
+    --accent-solid-strong: #3d40c4;
     --accent-soft: #242647;
     --accent-contrast: #ffffff;
     --danger: #ef6b6b;
@@ -220,7 +228,7 @@ button {
 }
 
 .view-tab.active {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
   box-shadow: 0 2px 8px rgba(76, 79, 224, 0.35);
 }
@@ -255,8 +263,8 @@ button {
 }
 
 .type-tab.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent-solid);
+  border-color: var(--accent-solid);
   color: var(--accent-contrast);
 }
 
@@ -580,7 +588,7 @@ button {
   padding: 9px 16px;
   border-radius: var(--radius-sm);
   border: none;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
   font-size: 13.5px;
   font-weight: 500;
@@ -590,7 +598,7 @@ button {
 }
 
 .preset-save button:hover:not(:disabled) {
-  background: var(--accent-strong);
+  background: var(--accent-solid-strong);
 }
 
 .preset-save button:disabled {
@@ -726,7 +734,7 @@ button {
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
   font-size: 13.5px;
   font-weight: 500;
@@ -736,7 +744,7 @@ button {
 }
 
 .export-group button:hover:not(:disabled) {
-  background: var(--accent-strong);
+  background: var(--accent-solid-strong);
   transform: translateY(-1px);
   box-shadow: 0 3px 10px rgba(76, 79, 224, 0.3);
 }
@@ -974,7 +982,7 @@ button {
   padding: 9px 18px;
   border-radius: 999px;
   border: none;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
   font-size: 14px;
   font-weight: 500;
@@ -987,7 +995,7 @@ button {
 .scanner-controls button:hover,
 .scan-actions button:hover,
 .scan-actions .btn:hover {
-  background: var(--accent-strong);
+  background: var(--accent-solid-strong);
   transform: translateY(-1px);
 }
 
@@ -1146,7 +1154,7 @@ button {
   padding: 11px 20px;
   border-radius: var(--radius-sm);
   border: none;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
   font-size: 14px;
   font-weight: 500;
@@ -1155,7 +1163,7 @@ button {
 }
 
 .batch-controls .primary:hover:not(:disabled) {
-  background: var(--accent-strong);
+  background: var(--accent-solid-strong);
   transform: translateY(-1px);
 }
 
@@ -1361,4 +1369,81 @@ button {
   margin: 10px 0 0;
   font-size: 12px;
   color: var(--text-mute);
+}
+
+/* ============================================================
+   PWA notices (update, offline, install)
+   ============================================================ */
+.pwa-notices {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(520px, calc(100vw - 24px));
+}
+
+.pwa-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  box-shadow: var(--shadow-lift);
+}
+
+.pwa-notice span {
+  flex: 1 1 200px;
+}
+
+.pwa-notice-warn {
+  color: var(--warn);
+}
+
+.pwa-notice-action {
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent-solid);
+  color: var(--accent-contrast);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pwa-notice-action:hover {
+  background: var(--accent-solid-strong);
+}
+
+.pwa-notice-dismiss {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pwa-notice-dismiss:hover {
+  background: var(--chip);
+  color: var(--text);
+}
+
+@media print {
+  .pwa-notices {
+    display: none;
+  }
 }

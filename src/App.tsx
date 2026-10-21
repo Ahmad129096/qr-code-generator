@@ -7,6 +7,7 @@ import OptionsPanel from './components/OptionsPanel'
 import HistoryPanel from './components/HistoryPanel'
 import LandingHero from './components/LandingHero'
 import NotFoundPage from './components/NotFoundPage'
+import PwaNotices from './components/PwaNotices'
 import { defaultOptions, type QrOptions } from './qr/options'
 import { loadHistory, pushHistory, type HistoryEntry } from './qr/history'
 import { buildShareUrl, decodeShareState } from './qr/share'
@@ -139,6 +140,8 @@ export default function App() {
         <Route path="/:slug" element={<GeneratorRoute {...generatorProps} />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+      <PwaNotices />
     </div>
   )
 }

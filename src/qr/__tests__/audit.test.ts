@@ -16,6 +16,7 @@ import {
   logoBoxFraction,
   minEncodableLevel,
   capacityFinding,
+  readableTextColor,
   relativeLuminance,
   worstCaseContrast,
 } from '../audit'
@@ -344,5 +345,28 @@ describe('auditCode', () => {
     expect(findings.every((f) => f.severity === 'error' || f.severity === 'warn')).toBe(true)
     expect(findings.some((f) => f.id === 'contrast' && f.severity === 'error')).toBe(true)
     expect(findings.some((f) => f.id === 'quiet-zone')).toBe(true)
+  })
+})
+
+describe('readableTextColor', () => {
+  it('uses a dark text on a light background', () => {
+    for (const background of ['#ffffff', '#f4f5f7']) {
+      const color = readableTextColor(background)
+      expect(relativeLuminance(color)).toBeLessThan(0.2)
+    }
+  })
+
+  it('uses a light text on a dark background', () => {
+    for (const background of ['#000000', '#1a1a2e']) {
+      const color = readableTextColor(background)
+      expect(relativeLuminance(color)).toBeGreaterThan(0.5)
+    }
+  })
+
+  it('always keeps a readable contrast', () => {
+    for (const background of ['#ffffff', '#000000', '#7d80f4', '#8a8f98', '#4c4fe0']) {
+      const color = readableTextColor(background)
+      expect(contrastRatio(background, color)).toBeGreaterThanOrEqual(CONTRAST_GOOD)
+    }
   })
 })
