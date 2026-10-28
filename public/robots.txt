@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://qr-code-generator-pi-peach.vercel.app/sitemap.xml
+Sitemap: https://qrgenerator.ahmad-hassan.dev/sitemap.xml

@@ -16,14 +16,18 @@ function setMeta(attr: 'name' | 'property', key: string, content: string): void 
   tag.setAttribute('content', content)
 }
 
-function setCanonical(href: string): void {
-  let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+function setLink(rel: string, href: string): void {
+  let link = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`)
   if (!link) {
     link = document.createElement('link')
-    link.rel = 'canonical'
+    link.rel = rel
     document.head.appendChild(link)
   }
   link.href = href
+}
+
+function setCanonical(href: string): void {
+  setLink('canonical', href)
 }
 
 /**
@@ -34,8 +38,16 @@ function setCanonical(href: string): void {
 export function applySeo(landing: LandingPage): void {
   document.title = landing.title
   setMeta('name', 'description', landing.description)
+  setMeta('name', 'robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')
+  setMeta('property', 'og:type', 'website')
+  setMeta('property', 'og:site_name', 'QR Code Generator')
   setMeta('property', 'og:title', landing.title)
   setMeta('property', 'og:description', landing.description)
+  setMeta('property', 'og:image', `${SITE_URL || ''}/og-image.png`)
+  setMeta('name', 'twitter:card', 'summary_large_image')
+  setMeta('name', 'twitter:title', landing.title)
+  setMeta('name', 'twitter:description', landing.description)
+  setMeta('name', 'twitter:image', `${SITE_URL || ''}/og-image.png`)
   if (SITE_URL) {
     const url = landing.slug ? `${SITE_URL}/${landing.slug}` : `${SITE_URL}/`
     setMeta('property', 'og:url', url)

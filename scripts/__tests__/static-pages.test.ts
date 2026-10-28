@@ -79,7 +79,7 @@ describe('renderMetaTags', () => {
   })
 
   it('marks pages as indexable', () => {
-    expect(tags).toContain('<meta name="robots" content="index, follow" />')
+    expect(tags).toContain('index, follow')
   })
 })
 

@@ -2,16 +2,69 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4c4fe0" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="language" content="English" />
+    <meta name="author" content="Ahmad129096" />
     <meta
       name="description"
+      content="Free QR Code Generator online. Create high-resolution QR codes for URLs, Wi-Fi, vCard, Email, SMS, WhatsApp, and more. No sign-up, no watermark, works in browser."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="QR Code Generator" />
+    <meta property="og:title" content="Free QR Code Generator — Create QR Codes Online" />
+    <meta
+      property="og:description"
       content="Create free, high-resolution QR codes for links, Wi-Fi, contacts, events and more. No sign-up, no watermark, and every code is made in your browser."
     />
-    <title>QR Code Generator</title>
+    <meta property="og:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Free QR Code Generator — Create QR Codes Online" />
+    <meta
+      name="twitter:description"
+      content="Create free, high-resolution QR codes for links, Wi-Fi, contacts, events and more. No sign-up, no watermark, and every code is made in your browser."
+    />
+    <meta name="twitter:image" content="/og-image.png" />
+    <link rel="canonical" href="https://qr-code-generator-pi-peach.vercel.app/" />
+    <title>Free QR Code Generator — Create QR Codes Online</title>
     <script>
+      // Set the color theme before the first paint, so the page never flashes
+      // in the wrong colors. Keeps working without JavaScript afterwards.
+      ;(function () {
+        var theme = 'light'
+        try {
+          var pref = window.localStorage.getItem('qr-theme')
+          if (pref === 'dark') theme = 'dark'
+          else if (pref !== 'light') {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          }
+        } catch (e) {
+          theme = 'light'
+        }
+        document.documentElement.setAttribute('data-theme', theme)
+      })()
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "QR Code Generator",
+        "alternateName": "Free QR Code Generator",
+        "url": "https://qr-code-generator-pi-peach.vercel.app/",
+        "description": "Create free, high-resolution QR codes for links, Wi-Fi, contacts, events and more. No sign-up, no watermark, works in browser.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+  </head>
       // Set the color theme before the first paint, so the page never flashes
       // in the wrong colors. Keeps working without JavaScript afterwards.
       ;(function () {

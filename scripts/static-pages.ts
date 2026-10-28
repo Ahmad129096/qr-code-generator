@@ -43,19 +43,25 @@ export function renderMetaTags(
   base = '/',
 ): string {
   const url = canonicalUrl(landing, siteUrl, base)
+  const root = siteRoot(siteUrl, base)
   const tags = [
+    `<meta http-equiv="X-UA-Compatible" content="IE=edge" />`,
     `<meta name="description" content="${escapeHtml(landing.description)}" />`,
-    `<meta name="robots" content="index, follow" />`,
+    `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`,
+    `<meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />`,
+    `<meta name="language" content="English" />`,
+    `<meta name="author" content="Ahmad129096" />`,
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />`,
     `<meta property="og:title" content="${escapeHtml(landing.title)}" />`,
     `<meta property="og:description" content="${escapeHtml(landing.description)}" />`,
     `<meta property="og:url" content="${escapeHtml(url)}" />`,
-    `<meta property="og:image" content="${escapeHtml(`${siteRoot(siteUrl, base)}/og-image.png`)}" />`,
+    `<meta property="og:image" content="${escapeHtml(`${root}/og-image.png`)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapeHtml(landing.title)}" />`,
     `<meta name="twitter:description" content="${escapeHtml(landing.description)}" />`,
+    `<meta name="twitter:image" content="${escapeHtml(`${root}/og-image.png`)}" />`,
   ]
   return tags.join('\n    ')
 }
@@ -67,6 +73,7 @@ export function renderJsonLd(
   base = '/',
 ): string {
   const url = canonicalUrl(landing, siteUrl, base)
+  const root = siteRoot(siteUrl, base)
   const data = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -74,9 +81,11 @@ export function renderJsonLd(
     alternateName: SITE_NAME,
     description: landing.description,
     url,
+    image: `${root}/og-image.png`,
     applicationCategory: 'UtilitiesApplication',
     operatingSystem: 'Any',
     browserRequirements: 'Requires JavaScript',
+    inLanguage: 'en-US',
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     publisher: { '@type': 'Organization', name: SITE_NAME },
@@ -162,16 +171,25 @@ export function renderSitemap(
 ): string {
   const urls = pages
     .map(
-      (page) =>
-        `  <url>\n    <loc>${escapeHtml(canonicalUrl(page, siteUrl, base))}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${page.slug ? '0.8' : '1.0'}</priority>\n  </url>`,
+      (page, idx) =>
+        `  <url>\n    <loc>${escapeHtml(canonicalUrl(page, siteUrl, base))}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${page.slug ? (idx >= 0 ? '0.9' : '0.8') : '1.0'}</priority>\n  </url>`,
     )
     .join('\n')
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">\n${urls}\n</urlset>\n`
 }
 
 /** The robots.txt file. */
 export function renderRobots(siteUrl: string, base = '/'): string {
-  return `User-agent: *\nAllow: /\n\nSitemap: ${siteRoot(siteUrl, base)}/sitemap.xml\n`
+  const root = siteRoot(siteUrl, base)
+  const lines = ['User-agent: *', 'Allow: /', '']
+  lines.push(`Sitemap: ${root}/sitemap.xml`)
+  if (!root.includes('qrgenerator.ahmad-hassan.dev')) {
+    lines.push('Sitemap: https://qrgenerator.ahmad-hassan.dev/sitemap.xml')
+  }
+  if (!root.includes('qr-code-generator-pi-peach')) {
+    lines.push('Sitemap: https://qr-code-generator-pi-peach.vercel.app/sitemap.xml')
+  }
+  return `${lines.join('\n')}\n`
 }
 
 export interface WriteOptions {
