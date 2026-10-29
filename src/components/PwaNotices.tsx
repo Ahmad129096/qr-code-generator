@@ -58,17 +58,31 @@ export default function PwaNotices() {
   useEffect(() => {
     const onBeforeInstall = (event: Event) => {
       event.preventDefault()
+      if (isStandalone()) return
       setInstallEvent(event as InstallPromptEvent)
     }
     const onInstalled = () => {
       setInstalled(true)
       setInstallEvent(null)
+      setInstallDismissed(true)
+    }
+    const mql = window.matchMedia('(display-mode: standalone)')
+    const onDisplayChange = () => {
+      if (mql.matches || (navigator as any).standalone) {
+        setInstalled(true)
+        setInstallEvent(null)
+        setInstallDismissed(true)
+      }
     }
     window.addEventListener('beforeinstallprompt', onBeforeInstall)
     window.addEventListener('appinstalled', onInstalled)
+    mql.addEventListener?.('change', onDisplayChange)
+    mql.addListener?.(onDisplayChange)
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforeInstall)
       window.removeEventListener('appinstalled', onInstalled)
+      mql.removeEventListener?.('change', onDisplayChange)
+      mql.removeListener?.(onDisplayChange)
     }
   }, [])
 
@@ -98,7 +112,7 @@ export default function PwaNotices() {
     installed,
     online,
   })
-  if (notices.length === 0) return null
+  if (installed || notices.length === 0) return null
 
   return (
     <div className="pwa-notices" role="status" aria-live="polite">

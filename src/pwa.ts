@@ -89,6 +89,16 @@ export function pwaNotices(state: PwaNoticeState): PwaNotice[] {
   if (state.needRefresh) notices.push('update')
   if (!state.online) notices.push('offline')
   if (state.offlineReady) notices.push('offline-ready')
-  if (state.installAvailable && !state.installed) notices.push('install')
+  if (state.installAvailable && !state.installed) {
+    try {
+      if (typeof window !== 'undefined') {
+        const standalone =
+          window.matchMedia('(display-mode: standalone)').matches ||
+          (navigator as any).standalone === true
+        if (standalone) return notices
+      }
+    } catch {}
+    notices.push('install')
+  }
   return notices
 }

@@ -2031,6 +2031,12 @@ input.logo-size-range:focus-visible {
   color: var(--text);
 }
 
+@media display-mode: standalone {
+  .pwa-notices {
+    display: none !important;
+  }
+}
+
 @media print {
   .pwa-notices {
     display: none;
