@@ -25,9 +25,9 @@ export interface LandingPage {
 export const HOME_LANDING: LandingPage = {
   slug: '',
   typeId: 'text',
-  title: 'Free QR Code Generator — Create QR codes in your browser',
+  title: 'Free QR Code Generator Online | No Sign-Up, No Watermark',
   description:
-    'Create free, high-resolution QR codes for links, Wi-Fi, contacts, events and more. No sign-up, no watermark, and every code is made in your browser.',
+    'Create free, high-resolution QR codes for links, Wi-Fi, vCard, WhatsApp, Email, SMS and more. No sign-up, no watermark, private & works in your browser.',
   headline: 'QR code generator',
   sub: 'Free, private and unlimited — every code is made in your browser, never uploaded.',
   highlights: [

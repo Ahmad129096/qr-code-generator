@@ -16,6 +16,7 @@ import { defaultOptions, type QrOptions } from './qr/options'
 import { loadHistory, pushHistory, type HistoryEntry } from './qr/history'
 import { buildShareUrl, decodeShareState } from './qr/share'
 import { HOME_LANDING, landingForSlug, pathForType, type LandingPage } from './landing'
+import { EXTRA_LANDING_PAGES } from './landing_extra'
 import { applyNotFoundSeo, applySeo } from './seo'
 import type { QrTemplate } from './qr/templates'
 import { localizeTerm } from './locale'
@@ -45,7 +46,10 @@ const sharedState = (() => {
 function initialTypeId(): string {
   const slug = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '')
   if (!slug) return sharedState?.typeId ?? HOME_LANDING.typeId
-  return landingForSlug(slug)?.typeId ?? HOME_LANDING.typeId
+  const found = landingForSlug(slug)
+  if (found) return found.typeId
+  const extra = (EXTRA_LANDING_PAGES as any[]).find((p: any) => p.slug === slug)
+  return extra?.typeId ?? HOME_LANDING.typeId
 }
 
 function initialFormData(): Record<string, Record<string, string | boolean>> {
@@ -203,7 +207,12 @@ function GeneratorPage({
   const [showDynamicQr, setShowDynamicQr] = useState(false)
   const navigate = useNavigate()
   const landing = useMemo<LandingPage | undefined>(() => {
-    if (slug) return landingForSlug(slug)
+    if (slug) {
+      const found = landingForSlug(slug)
+      if (found) return found
+      const extra = (EXTRA_LANDING_PAGES as any[]).find((p: any) => p.slug === slug)
+      if (extra) return extra
+    }
     // The home page follows the shared link when there is one.
     if (sharedState) {
       return { ...HOME_LANDING, typeId: sharedState.typeId }
@@ -271,7 +280,7 @@ function GeneratorPage({
     })
     if (!secret) return undefined
     return `This link includes the ${secret.label.toLowerCase()} — anyone with the link can read it.`
-  }, [activeType, activeData])
+  }, [activeType.fields, activeData])
 
   if (!landing) {
     return <NotFoundPage />

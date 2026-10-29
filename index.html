@@ -30,7 +30,7 @@
       content="Create free, high-resolution QR codes for links, Wi-Fi, contacts, events and more. No sign-up, no watermark, and every code is made in your browser."
     />
     <meta name="twitter:image" content="/og-image.png" />
-    <link rel="canonical" href="https://qr-code-generator-pi-peach.vercel.app/" />
+    <link rel="canonical" href="https://qrgenerator.ahmad-hassan.dev/" />
     <title>Free QR Code Generator — Create QR Codes Online</title>
     <script>
       // Set the color theme before the first paint, so the page never flashes
@@ -55,7 +55,7 @@
         "@type": "WebApplication",
         "name": "QR Code Generator",
         "alternateName": "Free QR Code Generator",
-        "url": "https://qr-code-generator-pi-peach.vercel.app/",
+        "url": "https://qrgenerator.ahmad-hassan.dev/",
         "description": "Create free, high-resolution QR codes for links, Wi-Fi, contacts, events and more. No sign-up, no watermark, works in browser.",
         "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Any",
@@ -63,23 +63,6 @@
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
-    </script>
-  </head>
-      // Set the color theme before the first paint, so the page never flashes
-      // in the wrong colors. Keeps working without JavaScript afterwards.
-      ;(function () {
-        var theme = 'light'
-        try {
-          var pref = window.localStorage.getItem('qr-theme')
-          if (pref === 'dark') theme = 'dark'
-          else if (pref !== 'light') {
-            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-          }
-        } catch (e) {
-          theme = 'light'
-        }
-        document.documentElement.setAttribute('data-theme', theme)
-      })()
     </script>
   </head>
   <body>

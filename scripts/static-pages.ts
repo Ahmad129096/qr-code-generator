@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { HOME_LANDING, LANDING_PAGES, type LandingPage } from '../src/landing.ts'
+import { EXTRA_LANDING_PAGES } from '../src/landing_extra.ts'
 
 /**
  * Build-time SEO: one static HTML file per landing page, plus sitemap.xml and
@@ -220,8 +221,16 @@ export function writeStaticPages(options: WriteOptions): string[] {
     written.push(file)
   }
 
+  for (const page of EXTRA_LANDING_PAGES) {
+    const dir = join(outDir, page.slug)
+    mkdirSync(dir, { recursive: true })
+    const file = join(dir, 'index.html')
+    writeFileSync(file, renderPage(template, page, siteUrl, base))
+    written.push(file)
+  }
+
   const sitemap = join(outDir, 'sitemap.xml')
-  writeFileSync(sitemap, renderSitemap([HOME_LANDING, ...LANDING_PAGES], siteUrl, base))
+  writeFileSync(sitemap, renderSitemap([HOME_LANDING, ...LANDING_PAGES, ...EXTRA_LANDING_PAGES], siteUrl, base))
   written.push(sitemap)
 
   const robots = join(outDir, 'robots.txt')
