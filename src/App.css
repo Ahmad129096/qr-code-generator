@@ -2031,7 +2031,7 @@ input.logo-size-range:focus-visible {
   color: var(--text);
 }
 
-@media display-mode: standalone {
+@media (display-mode: standalone) {
   .pwa-notices {
     display: none !important;
   }
